@@ -24,6 +24,32 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btnAddInventory').style.display = 'block';
         document.getElementById('btnImportCsv').style.display = 'block';
     }
+
+    const itemImageFile = document.getElementById('itemImageFile');
+    const itemImagePreview = document.getElementById('itemImagePreview');
+    const itemImagePreviewContainer = document.getElementById('itemImagePreviewContainer');
+
+    if (itemImageFile) {
+        itemImageFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    showToast('Vui lòng chọn file ảnh hợp lệ (.jpg, .png, .webp, .gif)', 'danger');
+                    itemImageFile.value = '';
+                    itemImagePreviewContainer.classList.add('d-none');
+                    itemImagePreview.src = '';
+                    return;
+                }
+                const url = URL.createObjectURL(file);
+                itemImagePreview.src = url;
+                itemImagePreviewContainer.classList.remove('d-none');
+            } else {
+                itemImagePreviewContainer.classList.add('d-none');
+                itemImagePreview.src = '';
+            }
+        });
+    }
 });
 
 async function loadMenuPage() {
@@ -222,6 +248,11 @@ function showAddItemModal() {
     document.getElementById('itemUnit').value = 'cái';
     document.getElementById('itemDescription').value = '';
     document.getElementById('itemImageUrl').value = '';
+    if (document.getElementById('itemImageFile')) {
+        document.getElementById('itemImageFile').value = '';
+        document.getElementById('itemImagePreviewContainer').classList.add('d-none');
+        document.getElementById('itemImagePreview').src = '';
+    }
 
     const categorySelect = document.getElementById('itemCategory');
     categorySelect.innerHTML = categories.map(category => `<option value="${category.id}">${category.name}</option>`).join('');
@@ -243,6 +274,17 @@ function editItem(id) {
     document.getElementById('itemUnit').value = item.unit;
     document.getElementById('itemDescription').value = item.description || '';
     document.getElementById('itemImageUrl').value = item.image_url || '';
+    
+    if (document.getElementById('itemImageFile')) {
+        document.getElementById('itemImageFile').value = '';
+        if (item.image_url) {
+            document.getElementById('itemImagePreview').src = item.image_url;
+            document.getElementById('itemImagePreviewContainer').classList.remove('d-none');
+        } else {
+            document.getElementById('itemImagePreviewContainer').classList.add('d-none');
+            document.getElementById('itemImagePreview').src = '';
+        }
+    }
 
     const categorySelect = document.getElementById('itemCategory');
     categorySelect.innerHTML = categories.map(category => `
@@ -254,19 +296,41 @@ function editItem(id) {
 
 async function saveItem() {
     const id = Number(document.getElementById('editItemId').value || 0);
-    const payload = {
-        category_id: Number(document.getElementById('itemCategory').value || 0),
-        name: document.getElementById('itemName').value.trim(),
-        price: Number(document.getElementById('itemPrice').value || 0),
-        unit: document.getElementById('itemUnit').value.trim(),
-        description: document.getElementById('itemDescription').value.trim(),
-        image_url: document.getElementById('itemImageUrl').value.trim()
-    };
+    const category_id = Number(document.getElementById('itemCategory').value || 0);
+    const name = document.getElementById('itemName').value.trim();
+    const price = Number(document.getElementById('itemPrice').value || 0);
+    const unit = document.getElementById('itemUnit').value.trim();
+    const description = document.getElementById('itemDescription').value.trim();
+    let image_url = document.getElementById('itemImageUrl').value.trim();
 
-    if (!payload.category_id || !payload.name || payload.price <= 0 || !payload.unit) {
+    if (!category_id || !name || price <= 0 || !unit) {
         showToast('Vui lòng nhập đủ thông tin hợp lệ', 'danger');
         return;
     }
+
+    const fileInput = document.getElementById('itemImageFile');
+    if (fileInput && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const uploadRes = await fetch('/api/upload/image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+            const data = await uploadRes.json();
+            if (!uploadRes.ok) throw new Error(data.error || 'Lỗi khi tải ảnh lên');
+            image_url = data.url;
+        } catch (err) {
+            showToast(err.message, 'danger');
+            return;
+        }
+    }
+
+    const payload = { category_id, name, price, unit, description, image_url };
 
     try {
         if (id > 0) {

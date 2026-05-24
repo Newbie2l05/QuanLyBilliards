@@ -143,8 +143,12 @@
                         <textarea class="form-control" id="itemDescription" rows="3" placeholder="Hiển thị trên trang QR Order"></textarea>
                     </div>
                     <div class="mb-0">
-                        <label class="form-label">Ảnh món (URL)</label>
-                        <input type="text" class="form-control" id="itemImageUrl" placeholder="https://... hoặc /images/menu/...">
+                        <label class="form-label">Ảnh món</label>
+                        <input type="file" class="form-control" id="itemImageFile" accept="image/jpeg, image/png, image/webp, image/gif">
+                        <input type="hidden" id="itemImageUrl">
+                        <div class="mt-2 text-center d-none" id="itemImagePreviewContainer">
+                            <img id="itemImagePreview" src="" alt="Preview" style="max-height: 150px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
