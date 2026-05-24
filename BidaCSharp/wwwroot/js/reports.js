@@ -369,13 +369,21 @@ function renderPaymentsTable(filteredPayments) {
             <td><span class="report-total-amount">${formatCurrency(payment.total_amount)}</span></td>
             <td><span class="badge report-method-badge ${payment.payment_method === 'cash' ? 'is-cash' : 'is-other'}">${getPaymentMethodLabel(payment.payment_method)}</span></td>
             <td class="report-note-cell" title="${(payment.note || '').replace(/"/g, '&quot;')}">${payment.note || '—'}</td>
-            ${adminColumn ? `
-                <td>
+            <td>
+                <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-info" onclick="copyInvoice(${payment.id})" title="Copy hóa đơn">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" onclick="exportInvoice(${payment.id})" title="Tải file hóa đơn">
+                        <i class="bi bi-download"></i>
+                    </button>
+                    ${adminColumn ? `
                     <button class="btn btn-sm btn-outline-danger" onclick="deletePayment(${payment.id})" title="Xóa">
                         <i class="bi bi-trash"></i>
                     </button>
-                </td>
-            ` : ''}
+                    ` : ''}
+                </div>
+            </td>
         </tr>
     `).join('');
 
@@ -438,4 +446,41 @@ async function deletePayment(paymentId) {
     } catch (err) {
         showToast(err.message, 'danger');
     }
+}
+
+function generateInvoiceText(payment) {
+    const clubName = document.getElementById('sidebarClubName')?.textContent || 'Billiard Club';
+    return `${clubName} - HÓA ĐƠN
+--------------------------------
+Bàn: ${payment.table_name}
+Thời gian: ${formatDateTime(payment.created_at)}
+Thời gian chơi: ${formatDuration(payment.play_duration)}
+Tiền giờ: ${formatCurrency(payment.play_amount)}
+Đồ uống/Dịch vụ: ${formatCurrency(payment.order_amount)}
+${payment.order_items_summary ? `(${payment.order_items_summary})\n` : ''}--------------------------------
+TỔNG CỘNG: ${formatCurrency(payment.total_amount)}
+Thanh toán bằng: ${getPaymentMethodLabel(payment.payment_method)}
+${payment.note ? `Ghi chú: ${payment.note}` : ''}`;
+}
+
+async function copyInvoice(id) {
+    const payment = allPayments.find(p => p.id === id);
+    if (!payment) return;
+    const text = generateInvoiceText(payment);
+    await copyTextToClipboard(text, 'Đã copy thông tin hóa đơn');
+}
+
+function exportInvoice(id) {
+    const payment = allPayments.find(p => p.id === id);
+    if (!payment) return;
+    const text = generateInvoiceText(payment);
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = \`HoaDon_\${removeVietnameseTones(payment.table_name).replace(/\\s+/g, '')}_\${new Date(payment.created_at).getTime()}.txt\`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
