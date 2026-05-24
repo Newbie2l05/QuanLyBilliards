@@ -146,39 +146,7 @@ function renderQrMenuItem(item, canOrder) {
 
 function resolveProductImage(item) {
     if (item.image_url) return item.image_url;
-
-    const normalized = removeVietnameseTones(`${item.name} ${item.category_name || ''}`).toLowerCase();
-    if (normalized.includes('heineken')) return '/images/menu/heineken.svg';
-    if (normalized.includes('tiger')) return '/images/menu/tiger.svg';
-    if (normalized.includes('saigon')) return '/images/menu/saigon-beer.svg';
-    if (normalized.includes('coca')) return '/images/menu/coca-cola.svg';
-    if (normalized.includes('pepsi')) return '/images/menu/pepsi.svg';
-    if (normalized.includes('sting')) return '/images/menu/sting.svg';
-    if (normalized.includes('red bull')) return '/images/menu/red-bull.svg';
-    if (normalized.includes('nuoc suoi')) return '/images/menu/water.svg';
-    if (normalized.includes('tra da')) return '/images/menu/iced-tea.svg';
-    if (normalized.includes('cafe den') || normalized.includes('ca phe den')) return '/images/menu/coffee-black.svg';
-    if (normalized.includes('cafe sua') || normalized.includes('ca phe sua')) return '/images/menu/coffee-milk.svg';
-    if (normalized.includes('dau phong')) return '/images/menu/peanuts.svg';
-    if (normalized.includes('kho bo')) return '/images/menu/beef-jerky.svg';
-    if (normalized.includes('mi tom') || normalized.includes('my tom') || normalized.includes('mi ') || normalized.includes('mì ')) {
-        return '/images/menu/noodle.svg';
-    }
-    if (normalized.includes('xuc xich') || normalized.includes('xien') || normalized.includes('nuong')) {
-        return '/images/menu/sausage.svg';
-    }
-    if (normalized.includes('bastos')) return '/images/menu/bastos.svg';
-    if (normalized.includes('esse')) return '/images/menu/esse.svg';
-    if (normalized.includes('jet')) return '/images/menu/jet.svg';
-    if (normalized.includes('marlboro')) return '/images/menu/marlboro.svg';
-    if (normalized.includes('gang tay')) return '/images/menu/gloves.svg';
-    if (normalized.includes('mi tom') || normalized.includes('my tom') || normalized.includes('mi ') || normalized.includes('mì ')) {
-        return '/images/menu/noodle.svg';
-    }
-    if (normalized.includes('xuc xich') || normalized.includes('xien') || normalized.includes('nuong')) {
-        return '/images/menu/sausage.svg';
-    }
-    return '/images/menu/generic.svg';
+    return createProductFallbackDataUri(item.name);
 }
 
 function createProductFallbackDataUri(name) {
