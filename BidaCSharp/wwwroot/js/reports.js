@@ -478,7 +478,7 @@ function exportInvoice(id) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = \`HoaDon_\${removeVietnameseTones(payment.table_name).replace(/\\s+/g, '')}_\${new Date(payment.created_at).getTime()}.txt\`;
+    a.download = `HoaDon_${removeVietnameseTones(payment.table_name).replace(/\s+/g, '')}_${new Date(payment.created_at).getTime()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
