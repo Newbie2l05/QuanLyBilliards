@@ -1,0 +1,74 @@
+[
+  {
+    "test_id": "tc_tables_list_success",
+    "method": "GET",
+    "endpoint": "/api/tables",
+    "username": "admin",
+    "password": "admin123",
+    "body": "",
+    "expected_code": 200
+  },
+  {
+    "test_id": "tc_table_create_success",
+    "method": "POST",
+    "endpoint": "/api/tables",
+    "username": "admin",
+    "password": "admin123",
+    "body": "{\"name\":\"Ban Test Word\",\"type\":\"standard\",\"price_per_hour\":60000,\"position_order\":150}",
+    "expected_code": 201
+  },
+  {
+    "test_id": "tc_table_create_missing_name",
+    "method": "POST",
+    "endpoint": "/api/tables",
+    "username": "admin",
+    "password": "admin123",
+    "body": "{\"name\":\"\",\"type\":\"standard\",\"price_per_hour\":60000,\"position_order\":151}",
+    "expected_code": 400
+  },
+  {
+    "test_id": "tc_table_delete_not_found",
+    "method": "DELETE",
+    "endpoint": "/api/tables/999999",
+    "username": "admin",
+    "password": "admin123",
+    "body": "",
+    "expected_code": 404
+  },
+  {
+    "test_id": "tc_payment_missing_session",
+    "method": "POST",
+    "endpoint": "/api/payment",
+    "username": "admin",
+    "password": "admin123",
+    "body": "{\"discount_percent\":0,\"payment_method\":\"cash\",\"note\":\"test loi\"}",
+    "expected_code": 400
+  },
+  {
+    "test_id": "tc_payment_invalid_session",
+    "method": "POST",
+    "endpoint": "/api/payment",
+    "username": "admin",
+    "password": "admin123",
+    "body": "{\"session_id\":999999,\"discount_percent\":0,\"payment_method\":\"cash\",\"note\":\"test sai session\"}",
+    "expected_code": 400
+  },
+  {
+    "test_id": "tc_tables_list_no_token",
+    "method": "GET",
+    "endpoint": "/api/tables",
+    "username": "",
+    "password": "",
+    "body": "",
+    "expected_code": 401
+  },
+  {
+    "test_id": "tc_payment_no_token",
+    "method": "POST",
+    "endpoint": "/api/payment",
+    "username": "",
+    "password": "",
+    "body": "{\"session_id\":1,\"discount_percent\":0,\"payment_method\":\"cash\"}",
+    "expected_code": 401
+  }
+]

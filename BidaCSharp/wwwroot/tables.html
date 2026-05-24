@@ -1,0 +1,440 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Quản lý bàn - Billiard Club</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/css/style.css?v=20260418-stable-1" rel="stylesheet">
+</head>
+<body>
+    <div class="main-content" id="mainContent">
+        <div class="page-header">
+            <div>
+                <h2><i class="bi bi-columns-gap me-2"></i>Quản lý bàn</h2>
+                <span class="breadcrumb">Theo dõi trạng thái từng bàn, tìm nhanh theo món gọi, combo và khách đặt</span>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                <button type="button" class="btn btn-outline-light position-relative" id="notificationBellBtn" onclick="openNotificationModal()">
+                    <i class="bi bi-bell"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationUnreadBadge" style="display:none">0</span>
+                </button>
+                <div class="hero-chip">
+                    <i class="bi bi-clock me-1"></i><span id="tablePageTime">00:00:00</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="bi bi-grid-1x2"></i></div>
+                    <div class="stat-value" id="tableCountAll">0</div>
+                    <div class="stat-label">Tổng bàn</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon success"><i class="bi bi-circle-fill"></i></div>
+                    <div class="stat-value" id="tableCountAvailable">0</div>
+                    <div class="stat-label">Bàn trống</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon warning"><i class="bi bi-play-fill"></i></div>
+                    <div class="stat-value" id="tableCountPlaying">0</div>
+                    <div class="stat-label">Đang chơi</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="bi bi-clock-fill"></i></div>
+                    <div class="stat-value" id="tableCountReserved">0</div>
+                    <div class="stat-label">Đặt trước</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="table-toolbar mb-4">
+            <div class="toolbar-search">
+                <i class="bi bi-search"></i>
+                <input type="text" class="form-control" id="tableSearchInput" placeholder="Tìm bàn, loại bàn, combo, món đang gọi, tên khách đặt...">
+            </div>
+            <div class="filter-pills" id="tableFilterGroup">
+                <button type="button" class="filter-pill active" data-filter="all">Tất cả</button>
+                <button type="button" class="filter-pill" data-filter="available">Trống</button>
+                <button type="button" class="filter-pill" data-filter="playing">Đang chơi</button>
+                <button type="button" class="filter-pill" data-filter="reserved">Đặt trước</button>
+            </div>
+            <div class="toolbar-result" id="tableResultHint">Đang hiển thị toàn bộ bàn</div>
+        </section>
+
+        <div class="table-grid" id="tableGrid">
+            <!-- Tables rendered by JS -->
+        </div>
+    </div>
+
+    <div class="modal fade" id="tableModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tableModalTitle">Bàn</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-gradient-danger btn-sm" id="headerCancelSessionBtn" onclick="openCancelSessionModal()" style="display:none">
+                            <i class="bi bi-x-octagon me-1"></i>Hủy bàn
+                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                </div>
+                <div class="modal-body" id="tableModalBody">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="transferModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Chuyển bàn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Chuyển đến bàn:</label>
+                        <select class="form-select" id="transferTarget"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-gradient-primary" onclick="doTransfer()">Chuyển bàn</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="mergeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-union me-2"></i>Gộp bàn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="font-size:14px;color:var(--text-secondary)">Chọn bàn để gộp vào bàn hiện tại (đơn hàng sẽ được chuyển sang):</p>
+                    <div id="mergeOptions"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-gradient-primary" onclick="doMerge()">Gộp bàn</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-cash-coin me-2"></i>Thanh toán</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="paymentModalBody">
+                    <!-- Dynamic -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-gradient-danger" data-role="cancel-session-payment" onclick="openCancelSessionModalFromPayment()">
+                        <i class="bi bi-x-octagon me-1"></i>Hủy bàn
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-gradient-success" onclick="doPayment()">
+                        <i class="bi bi-check-circle me-1"></i>Xác nhận thanh toán
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="tableQrModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-qr-code me-2"></i>QR Order tại bàn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <div id="tableQrCode" class="mb-3"></div>
+                        <div id="tableQrLinkText" style="font-size:13px;color:var(--text-secondary);word-break:break-all"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-gradient-primary" onclick="copyTableQrLink()">
+                        <i class="bi bi-copy me-1"></i>Copy link
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="notificationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-bell me-2"></i>Thông báo</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="markNotificationsRead()">Đánh dấu đã xem</button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                </div>
+                <div class="modal-body" id="notificationList">
+                    <div style="color:var(--text-muted);font-size:13px">Chưa có thông báo mới</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="invoiceModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-receipt me-2"></i>Hóa đơn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="invoiceContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-gradient-primary" onclick="printInvoice()">
+                        <i class="bi bi-printer me-1"></i>In hóa đơn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reservationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-calendar-event me-2"></i>Đặt trước bàn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên khách hàng</label>
+                        <input type="text" class="form-control" id="resCustomerName" placeholder="VD: Anh Tùng">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" id="resCustomerPhone" placeholder="Tùy chọn">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            <label class="form-label">Ngày nhận bàn</label>
+                            <input type="date" class="form-control" id="resDate">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Giờ nhận bàn</label>
+                            <input type="time" class="form-control" id="resClock" step="60">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <input type="text" class="form-control" id="resNote" placeholder="Tùy chọn">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn reservation-confirm-btn" id="reserveConfirmBtn" onclick="doReserveTable()" disabled>
+                        <i class="bi bi-check-circle me-1"></i>Xác nhận đặt bàn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="comboModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-stars me-2"></i>Chọn combo cho bàn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="comboSelectionSummary" class="mb-3"></div>
+                    <div id="comboOptions" class="row g-3"></div>
+                    <hr style="border-color:var(--border-color);margin:20px 0">
+                    <div class="mb-3">
+                        <label class="form-label">Quà tặng đi kèm</label>
+                        <div class="d-flex flex-wrap gap-2" id="comboGiftOptions"></div>
+                    </div>
+                    <div class="mb-0" id="comboDrinkPickerWrap" style="display:none">
+                        <label class="form-label">Chọn đồ uống tặng</label>
+                        <select class="form-select" id="comboDrinkPicker"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-gradient-success" id="comboStartBtn" onclick="confirmComboStart()" disabled>
+                        <i class="bi bi-check-circle me-1"></i>Bắt đầu với combo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="cancelReservationModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Xác nhận hủy đặt</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0" style="color:var(--text-secondary)">Bạn có chắc muốn hủy đặt bàn này không?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-gradient-danger" id="confirmCancelReservationBtn">
+                        <i class="bi bi-x-circle me-1"></i>Hủy đặt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="cancelSessionModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-exclamation-octagon me-2"></i>Hủy bàn đang chơi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0" id="cancelSessionModalText" style="color:var(--text-secondary)">
+                        Bạn có chắc muốn hủy phiên đang chơi này không?
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-gradient-danger" id="confirmCancelSessionBtn">
+                        <i class="bi bi-x-octagon me-1"></i>Hủy bàn
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="/lib/qrcodejs/qrcode.min.js"></script>
+    <script src="/js/common.js?v=20260419-stable-3"></script>
+    <script src="/js/tables.js?v=20260419-stable-4"></script>
+    <script src="/js/chatbot.js?v=20260418-stable-1"></script>
+    <script>
+        window.pendingCancelSessionId = window.pendingCancelSessionId || null;
+        const needsFallbackCancelSession = typeof window.confirmCancelSession !== 'function';
+
+        if (typeof window.openCancelSessionModal !== 'function') {
+            window.openCancelSessionModal = function () {
+                if (!window.currentSession || !window.currentTable) return;
+
+                window.pendingCancelSessionId = window.currentSession.id;
+                const modalText = document.getElementById('cancelSessionModalText');
+                if (modalText) {
+                    modalText.innerHTML = `
+                        Bạn có chắc muốn hủy phiên đang chơi của <strong>${window.currentTable.name}</strong> không?<br>
+                        Phiên chơi này sẽ bị hủy và đơn hàng chưa thanh toán của bàn này cũng sẽ bị hủy theo.
+                    `;
+                }
+
+                new bootstrap.Modal(document.getElementById('cancelSessionModal')).show();
+            };
+        }
+
+        if (typeof window.openCancelSessionModalFromPayment !== 'function') {
+            window.openCancelSessionModalFromPayment = function () {
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal'))?.hide();
+                setTimeout(() => window.openCancelSessionModal(), 150);
+            };
+        }
+
+        if (typeof window.confirmCancelSession !== 'function') {
+            window.confirmCancelSession = async function () {
+                if (!window.pendingCancelSessionId) return;
+
+                try {
+                    const result = await window.apiCall(`/api/sessions/${window.pendingCancelSessionId}/cancel`, { method: 'POST' });
+                    window.showToast(result?.message || `Đã hủy ${window.currentTable?.name || 'bàn'}`);
+                    bootstrap.Modal.getInstance(document.getElementById('cancelSessionModal'))?.hide();
+                    bootstrap.Modal.getInstance(document.getElementById('tableModal'))?.hide();
+                    if (window.timerInterval) clearInterval(window.timerInterval);
+                    window.pendingCancelSessionId = null;
+                    window.currentSession = null;
+                    window.loadTables?.();
+                } catch (err) {
+                    window.showToast(err.message, 'danger');
+                }
+            };
+        }
+
+        function ensureCancelSessionControls() {
+            const isPlaying = Boolean(window.currentTable && window.currentTable.status === 'playing');
+            const headerBtn = document.getElementById('headerCancelSessionBtn');
+            if (headerBtn) {
+                headerBtn.style.display = isPlaying ? 'inline-flex' : 'none';
+            }
+
+            const paymentFooter = document.querySelector('#paymentModal .modal-footer');
+            if (paymentFooter && !paymentFooter.querySelector('[data-role="cancel-session-payment"], [onclick="openCancelSessionModalFromPayment()"]')) {
+                const paymentBtn = document.createElement('button');
+                paymentBtn.type = 'button';
+                paymentBtn.className = 'btn btn-gradient-danger';
+                paymentBtn.dataset.role = 'cancel-session-payment';
+                paymentBtn.innerHTML = '<i class="bi bi-x-octagon me-1"></i>Hủy bàn';
+                paymentBtn.onclick = () => window.openCancelSessionModalFromPayment();
+                paymentFooter.prepend(paymentBtn);
+            }
+
+            const paymentActionBtn = document.querySelector('#tableModal button[onclick="openPaymentModal()"]');
+            const actionBody = paymentActionBtn?.parentElement;
+            if (isPlaying && actionBody && !actionBody.querySelector('[data-role="cancel-session-action"], [onclick="openCancelSessionModal()"]')) {
+                const actionBtn = document.createElement('button');
+                actionBtn.type = 'button';
+                actionBtn.className = 'btn btn-gradient-danger';
+                actionBtn.dataset.role = 'cancel-session-action';
+                actionBtn.innerHTML = '<i class="bi bi-x-octagon me-2"></i>Hủy bàn';
+                actionBtn.onclick = () => window.openCancelSessionModal();
+                actionBody.appendChild(actionBtn);
+            }
+        }
+
+        const tableModal = document.getElementById('tableModal');
+        tableModal?.addEventListener('shown.bs.modal', ensureCancelSessionControls);
+        tableModal?.addEventListener('hidden.bs.modal', () => {
+            const headerBtn = document.getElementById('headerCancelSessionBtn');
+            if (headerBtn) {
+                headerBtn.style.display = 'none';
+            }
+        });
+
+        const cancelSessionBtn = document.getElementById('confirmCancelSessionBtn');
+        if (needsFallbackCancelSession && cancelSessionBtn && !cancelSessionBtn.dataset.boundCancelSession) {
+            cancelSessionBtn.dataset.boundCancelSession = 'true';
+            cancelSessionBtn.addEventListener('click', () => window.confirmCancelSession());
+        }
+
+        setInterval(ensureCancelSessionControls, 600);
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+  <rect width="640" height="420" rx="36" fill="#3f2a1d"/>
+  <ellipse cx="274" cy="190" rx="72" ry="52" fill="#d6a96a"/>
+  <ellipse cx="366" cy="190" rx="72" ry="52" fill="#c68e52"/>
+  <ellipse cx="320" cy="214" rx="96" ry="58" fill="#ddb277" opacity=".92"/>
+  <text x="320" y="334" fill="#fef3c7" font-family="Segoe UI,Arial" font-size="34" font-weight="700" text-anchor="middle">Đậu phộng</text>
+</svg>

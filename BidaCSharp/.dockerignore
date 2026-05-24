@@ -1,0 +1,7 @@
+bin/
+obj/
+.vs/
+.mysql-runtime/
+runtime-stdout.log
+runtime-stderr.log
+*.user

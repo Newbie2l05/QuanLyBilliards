@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🎱 BidaCSharp",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/BidaCSharp/bin/Debug/net9.0/BidaCSharp.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/BidaCSharp",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "preLaunchTask": "build"
+    }
+  ]
+}

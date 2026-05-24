@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Báo cáo - Billiard Club</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/css/style.css?v=20260418-stable-1" rel="stylesheet">
+</head>
+<body>
+    <div class="main-content" id="mainContent">
+        <div class="page-header">
+            <div>
+                <h2><i class="bi bi-bar-chart-line me-2"></i>Báo cáo doanh thu</h2>
+                <span class="breadcrumb">Doanh thu thực tế, phương thức thanh toán và hiệu suất khai thác bàn</span>
+            </div>
+        </div>
+
+        <div class="card-dark mb-4">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Từ ngày</label>
+                        <input type="date" class="form-control" id="filterFrom">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Đến ngày</label>
+                        <input type="date" class="form-control" id="filterTo">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-gradient-primary w-100" onclick="loadReports()">
+                            <i class="bi bi-search me-1"></i>Xem
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Tìm sâu trong báo cáo</label>
+                        <div class="toolbar-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="form-control" id="reportSearchInput" placeholder="Tìm theo bàn, món gọi, ghi chú, phương thức thanh toán...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon success"><i class="bi bi-cash-stack"></i></div>
+                    <div class="stat-value" id="totalRevenue">0đ</div>
+                    <div class="stat-label">Tổng doanh thu</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="bi bi-receipt"></i></div>
+                    <div class="stat-value" id="totalInvoices">0</div>
+                    <div class="stat-label">Số hóa đơn</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon warning"><i class="bi bi-calculator"></i></div>
+                    <div class="stat-value" id="avgRevenue">0đ</div>
+                    <div class="stat-label">Trung bình / hóa đơn</div>
+                </div>
+            </div>
+        </div>
+
+        <section class="analytics-grid mb-4">
+            <div class="chart-card">
+                <div class="card-header">
+                    <i class="bi bi-graph-up-arrow me-2"></i>Xu hướng doanh thu
+                </div>
+                <div class="card-body">
+                    <canvas id="reportsRevenueChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="card-header">
+                    <i class="bi bi-credit-card-2-front me-2"></i>Cơ cấu phương thức thanh toán
+                </div>
+                <div class="card-body">
+                    <canvas id="paymentMethodChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="bi bi-stopwatch"></i></div>
+                    <div class="stat-value" id="efficiencyHours">0h</div>
+                    <div class="stat-label">Tổng giờ khai thác bàn</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon success"><i class="bi bi-lightning-charge"></i></div>
+                    <div class="stat-value" id="efficiencyRate">0%</div>
+                    <div class="stat-label">Hiệu suất trung bình</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon warning"><i class="bi bi-trophy"></i></div>
+                    <div class="stat-value" id="topTableName">--</div>
+                    <div class="stat-label">Bàn hiệu quả nhất</div>
+                </div>
+            </div>
+        </div>
+
+        <section class="analytics-grid mb-4">
+            <div class="chart-card">
+                <div class="card-header">
+                    <i class="bi bi-speedometer2 me-2"></i>Hiệu suất sử dụng bàn
+                </div>
+                <div class="card-body">
+                    <canvas id="tableEfficiencyChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="card-header">
+                    <i class="bi bi-currency-dollar me-2"></i>Doanh thu tiền bàn
+                </div>
+                <div class="card-body">
+                    <canvas id="tableRevenueChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <div class="card-dark report-payment-card mb-4">
+            <div class="card-header">
+                <i class="bi bi-lightning me-2"></i>Chi tiết hiệu suất từng bàn
+            </div>
+            <div class="card-body" style="padding:0;overflow-x:auto">
+                <table class="table table-dark-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>Bàn</th>
+                            <th>Loại</th>
+                            <th>Số ca</th>
+                            <th>Giờ chơi</th>
+                            <th>TB / ca</th>
+                            <th>Hiệu suất</th>
+                            <th>Tiền bàn</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableEfficiencyList">
+                        <tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Đang tải dữ liệu hiệu suất...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card-dark report-payment-card">
+            <div class="card-header">
+                <i class="bi bi-list-ul me-2"></i>Chi tiết thanh toán
+            </div>
+            <div class="card-body" style="padding:0;overflow-x:auto">
+                <table class="table table-dark-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Bàn</th>
+                            <th>Thời gian</th>
+                            <th>Giờ chơi</th>
+                            <th>Tiền giờ</th>
+                            <th>Đồ uống</th>
+                            <th>Tổng</th>
+                            <th>PTTT</th>
+                            <th>Ghi chú</th>
+                            <th id="thAction" style="display:none">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsList">
+                        <tr><td colspan="10" style="text-align:center;color:var(--text-muted)">Đang tải dữ liệu...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-body pt-3 pb-2" id="reportsPagination"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="/js/common.js?v=20260524-feature-1"></script>
+    <script src="/js/reports.js?v=20260524-feature-1"></script>
+    <script src="/js/chatbot.js?v=20260418-stable-1"></script>
+    <script>
+        if (isAdmin()) {
+            document.getElementById('thAction').style.display = '';
+        }
+    </script>
+</body>
+</html>

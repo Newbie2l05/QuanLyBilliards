@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build artifacts
+bin/
+obj/
+_buildcheck/
+
+# Node.js
+node_modules/
+npm-debug.log
+
+# Database
+.mysql-runtime/
+
+# Environment files
+appsettings.Development.json
+*.env
+
+# Others
+.DS_Store
