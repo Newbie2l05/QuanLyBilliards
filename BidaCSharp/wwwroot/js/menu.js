@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isAdmin()) {
         document.getElementById('btnAddItem').style.display = 'block';
         document.getElementById('btnAddInventory').style.display = 'block';
+        document.getElementById('btnImportCsv').style.display = 'block';
     }
 });
 
@@ -602,5 +603,37 @@ async function deleteInventoryItem(id) {
         await loadMenuPage();
     } catch (err) {
         showToast(err.message, 'danger');
+    }
+}
+
+async function handleCsvImport(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = getToken();
+    try {
+        const response = await fetch('/api/inventory-items/import', {
+            method: 'POST',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+            body: formData
+        });
+
+        const rawText = await response.text();
+        let data = null;
+        try { data = JSON.parse(rawText); } catch { }
+
+        if (!response.ok) {
+            throw new Error(data?.error || data?.message || rawText || 'Upload failed');
+        }
+
+        showToast(data.message || 'Import thành công');
+        event.target.value = ''; // Reset input
+        await loadMenuPage();
+    } catch (err) {
+        showToast(err.message, 'danger');
+        event.target.value = ''; // Reset input
     }
 }

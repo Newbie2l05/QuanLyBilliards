@@ -154,4 +154,66 @@ public sealed class InventoryController : AppApiController
         await connection.ExecuteAsync("UPDATE inventory_items SET active = 0 WHERE id = @id", new { id });
         return Ok(new { message = "Đã ẩn nguyên liệu khỏi kho" });
     }
+
+    [Authorize(Roles = "admin")]
+    [HttpPost("inventory-items/import")]
+    public async Task<IActionResult> ImportInventoryCsv(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return ApiError("Không tìm thấy file", 400);
+
+        using var reader = new StreamReader(file.OpenReadStream());
+        var header = await reader.ReadLineAsync(); // Skip header
+        int successCount = 0;
+
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync();
+        using var transaction = connection.BeginTransaction();
+
+        try
+        {
+            while (!reader.EndOfStream)
+            {
+                var line = await reader.ReadLineAsync();
+                if (string.IsNullOrWhiteSpace(line)) continue;
+
+                var values = line.Split(',');
+                if (values.Length < 4) continue;
+
+                var name = values[0].Trim();
+                var unit = values[1].Trim();
+                decimal.TryParse(values[2].Trim(), out decimal currentStock);
+                decimal.TryParse(values[3].Trim(), out decimal minStock);
+
+                if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(unit)) continue;
+
+                var existingId = await connection.ExecuteScalarAsync<int?>(
+                    "SELECT id FROM inventory_items WHERE name = @name",
+                    new { name }, transaction);
+
+                if (existingId.HasValue)
+                {
+                    await connection.ExecuteAsync(@"
+                        UPDATE inventory_items 
+                        SET unit = @unit, current_stock = current_stock + @current_stock, min_stock = @min_stock, active = 1
+                        WHERE id = @id",
+                        new { id = existingId.Value, unit, current_stock = currentStock, min_stock = minStock }, transaction);
+                }
+                else
+                {
+                    await connection.ExecuteAsync(@"
+                        INSERT INTO inventory_items (name, unit, current_stock, min_stock)
+                        VALUES (@name, @unit, @current_stock, @min_stock)",
+                        new { name, unit, current_stock = currentStock, min_stock = minStock }, transaction);
+                }
+                successCount++;
+            }
+            transaction.Commit();
+            return Ok(new { message = $"Đã import {successCount} nguyên liệu thành công" });
+        }
+        catch (Exception ex)
+        {
+            return ApiError("Lỗi khi đọc file CSV: " + ex.Message, 500);
+        }
+    }
 }
