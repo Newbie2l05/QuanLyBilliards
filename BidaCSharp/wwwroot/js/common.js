@@ -440,6 +440,9 @@ async function initSidebar() {
                 <a href="/menu.html" class="nav-link" data-page="menu">
                     <i class="bi bi-book"></i> Menu
                 </a>
+                <a href="/customers.html" class="nav-link" data-page="customers">
+                    <i class="bi bi-people"></i> KhÃ¡ch hÃ ng / Membership
+                </a>
                 <a href="/reports.html" class="nav-link" data-page="reports">
                     <i class="bi bi-bar-chart-line"></i> Báo cáo
                 </a>

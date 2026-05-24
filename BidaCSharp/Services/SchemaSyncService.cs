@@ -85,6 +85,10 @@ public sealed class SchemaSyncService : IHostedService
             await EnsureColumnAsync("menu_items", "description", "description TEXT NULL AFTER unit");
             await EnsureColumnAsync("menu_items", "image_url", "image_url VARCHAR(500) NULL AFTER description");
             await EnsureColumnAsync("order_items", "note", "note TEXT NULL AFTER quantity");
+            await EnsureColumnAsync("payments", "customer_id", "customer_id INT NULL AFTER note");
+            await EnsureColumnAsync("payments", "customer_phone", "customer_phone VARCHAR(20) NULL AFTER customer_id");
+            await EnsureColumnAsync("payments", "customer_rank", "customer_rank VARCHAR(30) NULL AFTER customer_phone");
+            await EnsureColumnAsync("payments", "membership_points_earned", "membership_points_earned INT NOT NULL DEFAULT 0 AFTER customer_rank");
 
             await connection.ExecuteAsync("""
                 CREATE TABLE IF NOT EXISTS table_order_requests (
@@ -118,6 +122,38 @@ public sealed class SchemaSyncService : IHostedService
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     CONSTRAINT fk_table_order_request_item_request FOREIGN KEY (request_id) REFERENCES table_order_requests(id),
                     CONSTRAINT fk_table_order_request_item_menu_item FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+                );
+                """);
+
+            await connection.ExecuteAsync("""
+                CREATE TABLE IF NOT EXISTS customers (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    phone VARCHAR(20) NOT NULL UNIQUE,
+                    full_name VARCHAR(120) DEFAULT NULL,
+                    rank_name VARCHAR(30) NOT NULL DEFAULT 'Member',
+                    points INT NOT NULL DEFAULT 0,
+                    total_spent DECIMAL(14,0) NOT NULL DEFAULT 0,
+                    total_visits INT NOT NULL DEFAULT 0,
+                    last_played_at DATETIME DEFAULT NULL,
+                    note TEXT DEFAULT NULL,
+                    active TINYINT(1) NOT NULL DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                );
+                """);
+
+            await connection.ExecuteAsync("""
+                CREATE TABLE IF NOT EXISTS membership_points_history (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    customer_id INT NOT NULL,
+                    payment_id INT DEFAULT NULL,
+                    points_delta INT NOT NULL,
+                    points_after INT NOT NULL,
+                    reason VARCHAR(80) NOT NULL,
+                    note TEXT DEFAULT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT fk_membership_history_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+                    CONSTRAINT fk_membership_history_payment FOREIGN KEY (payment_id) REFERENCES payments(id)
                 );
                 """);
 

@@ -5,6 +5,7 @@ using BidaCSharp.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.RegularExpressions;
 
 namespace BidaCSharp.Controllers;
 
@@ -137,10 +138,72 @@ public sealed class PaymentsController : AppApiController
         var subtotal = finalPlayAmount + orderAmount + surchargeAmount;
         var discountAmount = Math.Round(subtotal * discountPercent / 100m, 0, MidpointRounding.AwayFromZero);
         var totalAmount = subtotal - discountAmount;
+        var normalizedPhone = NormalizePhone(request.customer_phone);
+
+        customer_record? customer = null;
+        var pointsEarned = 0;
+        if (!string.IsNullOrWhiteSpace(normalizedPhone))
+        {
+            customer = await connection.QueryFirstOrDefaultAsync<customer_record>(
+                "SELECT * FROM customers WHERE phone = @phone AND active = 1 LIMIT 1",
+                new { phone = normalizedPhone },
+                transaction);
+
+            if (customer is null)
+            {
+                var customerId = await connection.ExecuteScalarAsync<int>(@"
+                    INSERT INTO customers (phone, rank_name, points, total_spent, total_visits, last_played_at, note)
+                    VALUES (@phone, 'Member', 0, 0, 0, @last_played_at, NULL);
+                    SELECT LAST_INSERT_ID();",
+                    new
+                    {
+                        phone = normalizedPhone,
+                        last_played_at = now
+                    },
+                    transaction);
+
+                customer = await connection.QueryFirstAsync<customer_record>(
+                    "SELECT * FROM customers WHERE id = @id",
+                    new { id = customerId },
+                    transaction);
+            }
+
+            pointsEarned = CalculateMembershipPoints(totalAmount);
+            var updatedPoints = customer.points + pointsEarned;
+            var updatedVisits = customer.total_visits + 1;
+            var updatedSpent = customer.total_spent + totalAmount;
+            var updatedRank = ResolveMembershipRank(updatedPoints, updatedSpent);
+
+            await connection.ExecuteAsync(@"
+                UPDATE customers
+                SET points = @points,
+                    total_spent = @total_spent,
+                    total_visits = @total_visits,
+                    last_played_at = @last_played_at,
+                    rank_name = @rank_name,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = @id",
+                new
+                {
+                    id = customer.id,
+                    points = updatedPoints,
+                    total_spent = updatedSpent,
+                    total_visits = updatedVisits,
+                    last_played_at = now,
+                    rank_name = updatedRank
+                },
+                transaction);
+
+            customer.points = updatedPoints;
+            customer.total_spent = updatedSpent;
+            customer.total_visits = updatedVisits;
+            customer.last_played_at = now;
+            customer.rank_name = updatedRank;
+        }
 
         var paymentId = await connection.ExecuteScalarAsync<int>(@"
-            INSERT INTO payments (session_id, table_name, start_time, end_time, play_duration, play_amount, order_amount, surcharge_amount, discount_percent, discount_amount, total_amount, payment_method, note, created_by)
-            VALUES (@session_id, @table_name, @start_time, @end_time, @play_duration, @play_amount, @order_amount, @surcharge_amount, @discount_percent, @discount_amount, @total_amount, @payment_method, @note, @created_by);
+            INSERT INTO payments (session_id, table_name, start_time, end_time, play_duration, play_amount, order_amount, surcharge_amount, discount_percent, discount_amount, total_amount, payment_method, note, customer_id, customer_phone, customer_rank, membership_points_earned, created_by)
+            VALUES (@session_id, @table_name, @start_time, @end_time, @play_duration, @play_amount, @order_amount, @surcharge_amount, @discount_percent, @discount_amount, @total_amount, @payment_method, @note, @customer_id, @customer_phone, @customer_rank, @membership_points_earned, @created_by);
             SELECT LAST_INSERT_ID();",
             new
             {
@@ -157,9 +220,30 @@ public sealed class PaymentsController : AppApiController
                 total_amount = totalAmount,
                 payment_method = string.IsNullOrWhiteSpace(request.payment_method) ? "cash" : request.payment_method,
                 note = request.note,
+                customer_id = customer?.id,
+                customer_phone = normalizedPhone,
+                customer_rank = customer?.rank_name,
+                membership_points_earned = pointsEarned,
                 created_by = current_user.id
             },
             transaction);
+
+        if (customer is not null)
+        {
+            await connection.ExecuteAsync(@"
+                INSERT INTO membership_points_history (customer_id, payment_id, points_delta, points_after, reason, note)
+                VALUES (@customer_id, @payment_id, @points_delta, @points_after, @reason, @note)",
+                new
+                {
+                    customer_id = customer.id,
+                    payment_id = paymentId,
+                    points_delta = pointsEarned,
+                    points_after = customer.points,
+                    reason = "payment",
+                    note = $"Thanh toán bàn {session.table_name}"
+                },
+                transaction);
+        }
 
         await connection.ExecuteAsync(
             "UPDATE `tables` SET status = 'available' WHERE id = @id",
@@ -211,6 +295,9 @@ public sealed class PaymentsController : AppApiController
             discount_amount = discountAmount,
             total_amount = totalAmount,
             payment_method = string.IsNullOrWhiteSpace(request.payment_method) ? "cash" : request.payment_method,
+            customer_phone = normalizedPhone,
+            customer,
+            membership_points_earned = pointsEarned,
             settings
         });
     }
@@ -317,5 +404,46 @@ public sealed class PaymentsController : AppApiController
     {
         var settings = await connection.QueryAsync<setting_record>("SELECT * FROM settings", transaction: transaction);
         return settings.ToDictionary(item => item.setting_key, item => item.setting_value);
+    }
+
+    private static string? NormalizePhone(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var digits = Regex.Replace(value, "[^0-9]", string.Empty);
+        return digits.Length is >= 9 and <= 15 ? digits : null;
+    }
+
+    private static int CalculateMembershipPoints(decimal totalAmount)
+    {
+        return Math.Max(0, (int)Math.Floor(totalAmount / 10000m));
+    }
+
+    private static string ResolveMembershipRank(int points, decimal totalSpent)
+    {
+        if (points >= 1500 || totalSpent >= 15000000m)
+        {
+            return "Kim cương";
+        }
+
+        if (points >= 800 || totalSpent >= 8000000m)
+        {
+            return "Bạch kim";
+        }
+
+        if (points >= 400 || totalSpent >= 4000000m)
+        {
+            return "Vàng";
+        }
+
+        if (points >= 150 || totalSpent >= 1500000m)
+        {
+            return "Bạc";
+        }
+
+        return "Member";
     }
 }

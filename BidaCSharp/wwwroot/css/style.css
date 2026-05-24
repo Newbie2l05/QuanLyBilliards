@@ -927,16 +927,20 @@ body::before {
 }
 
 .table-dark-custom tbody td {
-    background: #ffffff;
-    color: #1a1f2e;
-    border-color: rgba(17, 24, 39, 0.10);
+    background: #1b2030;
+    color: var(--text-primary);
+    border-color: rgba(148, 163, 184, 0.10);
     padding: 12px 16px;
     font-size: 14px;
     vertical-align: middle;
 }
 
 .table-dark-custom tbody tr:hover td {
-    background: #f5f7fb;
+    background: #23293c;
+}
+
+.table-dark-custom tbody tr.is-selected-row td {
+    background: rgba(88, 108, 255, 0.18);
 }
 
 /* ============================================

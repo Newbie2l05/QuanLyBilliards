@@ -1485,6 +1485,11 @@ async function openPaymentModal() {
                     </select>
                 </div>
                 <div class="mb-3">
+                    <label class="form-label">SĐT member (không bắt buộc)</label>
+                    <input type="text" class="form-control mb-2" id="paymentCustomerPhone" placeholder="Nhập số điện thoại để cộng điểm" oninput="lookupPaymentCustomer()">
+                    <div id="paymentCustomerPreview" style="font-size:12px;color:var(--text-muted);margin-bottom:10px">
+                        Nhập SĐT nếu muốn lưu membership cho lần thanh toán này.
+                    </div>
                     <label class="form-label">Ghi chú</label>
                     <input type="text" class="form-control" id="paymentNote" placeholder="Ghi chú...">
                 </div>
@@ -1515,6 +1520,7 @@ async function openPaymentModal() {
 
     // Initial calc
     recalcLiveTotal();
+    lookupPaymentCustomer();
 
     new bootstrap.Modal(document.getElementById('paymentModal')).show();
 }
@@ -1577,12 +1583,40 @@ function setDiscount(percent, btn) {
     recalcLiveTotal();
 }
 
+async function lookupPaymentCustomer() {
+    const input = document.getElementById('paymentCustomerPhone');
+    const preview = document.getElementById('paymentCustomerPreview');
+    if (!input || !preview) return;
+
+    const phone = input.value.trim();
+    if (!phone) {
+        preview.textContent = 'Nhập SĐT nếu muốn lưu membership cho lần thanh toán này.';
+        return;
+    }
+
+    try {
+        const customer = await apiCall(`/api/customers/lookup?phone=${encodeURIComponent(phone)}`);
+        if (!customer) {
+            preview.innerHTML = '<span style="color:var(--warning)">Sẽ tạo member mới cho SĐT này sau khi thanh toán.</span>';
+            return;
+        }
+
+        preview.innerHTML = `
+            <span style="color:var(--success);font-weight:600">${customer.full_name || 'Khách member'}</span>
+            <span style="color:var(--text-secondary)"> • Hạng ${customer.rank_name || 'Member'} • ${customer.points || 0} điểm</span>
+        `;
+    } catch {
+        preview.innerHTML = '<span style="color:var(--warning)">Không tải được thông tin member lúc này.</span>';
+    }
+}
+
 async function doPayment() {
     const surchargeChecks = document.querySelectorAll('.surcharge-check:checked');
     const surchargeIds = Array.from(surchargeChecks).map(cb => parseInt(cb.value));
     const discountPercent = parseFloat(document.getElementById('discountPercent').value) || 0;
     const paymentMethod = document.getElementById('paymentMethod').value;
     const note = document.getElementById('paymentNote').value;
+    const customerPhone = document.getElementById('paymentCustomerPhone')?.value?.trim() || null;
 
     try {
         const result = await apiCall('/api/payment', {
@@ -1592,7 +1626,8 @@ async function doPayment() {
                 discount_percent: discountPercent,
                 payment_method: paymentMethod,
                 surcharge_ids: surchargeIds,
-                note
+                note,
+                customer_phone: customerPhone
             })
         });
 
@@ -1705,10 +1740,13 @@ function buildPaymentCopyText(type, payload) {
         `Thời gian chơi: ${formatDuration(payload.play_duration || 0)}`,
         `Tiền bàn: ${formatCurrency(payload.play_amount || 0)}`,
         `Tiền món: ${formatCurrency(payload.order_amount || 0)}`,
+        payload.customer_phone ? `SĐT member: ${payload.customer_phone}` : '',
+        payload.customer?.rank_name ? `Hạng: ${payload.customer.rank_name}` : '',
+        payload.membership_points_earned ? `Điểm cộng: +${payload.membership_points_earned}` : '',
         `Tổng thanh toán: ${formatCurrency(payload.total_amount || 0)}`,
         `Thanh toán: ${getPaymentMethodLabel(payload.payment_method || 'cash')}`,
         `Món đã gọi:\n${itemsText}`
-    ].join('\n');
+    ].filter(Boolean).join('\n');
 }
 
 async function getCurrentOrderItemsForCopy() {
@@ -1728,6 +1766,7 @@ async function copyPaymentSummary(type) {
         order_amount: Number(document.getElementById('payOrderAmount')?.value || 0),
         total_amount: Number(document.getElementById('payLiveAmount')?.value || 0),
         payment_method: document.getElementById('paymentMethod')?.value || 'cash',
+        customer_phone: document.getElementById('paymentCustomerPhone')?.value?.trim() || '',
         order_items: await getCurrentOrderItemsForCopy()
     };
 
@@ -1830,6 +1869,9 @@ function showInvoice(data) {
                 <div><strong>Thời gian:</strong> ${formatDuration(data.play_duration)}</div>
                 ${data.combo_name ? `<div><strong>Combo:</strong> ${data.combo_name} (${data.combo_hours} giờ)</div>` : ''}
                 ${data.combo_gift_name ? `<div><strong>Quà tặng:</strong> ${data.combo_gift_name}</div>` : ''}
+                ${data.customer_phone ? `<div><strong>SĐT member:</strong> ${data.customer_phone}</div>` : ''}
+                ${data.customer?.rank_name ? `<div><strong>Hạng:</strong> ${data.customer.rank_name}</div>` : ''}
+                ${data.membership_points_earned ? `<div><strong>Điểm cộng:</strong> +${data.membership_points_earned}</div>` : ''}
             </div>
 
             ${data.order_items && data.order_items.length > 0 ? `

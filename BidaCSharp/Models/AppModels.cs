@@ -261,6 +261,7 @@ public sealed class payment_request
     public string? payment_method { get; set; }
     public List<int>? surcharge_ids { get; set; }
     public string? note { get; set; }
+    public string? customer_phone { get; set; }
 }
 
 public sealed class payment_record
@@ -279,10 +280,51 @@ public sealed class payment_record
     public decimal total_amount { get; set; }
     public string payment_method { get; set; } = string.Empty;
     public string? note { get; set; }
+    public int? customer_id { get; set; }
+    public string? customer_phone { get; set; }
+    public string? customer_rank { get; set; }
+    public int membership_points_earned { get; set; }
     public int? created_by { get; set; }
     public DateTime created_at { get; set; }
     public string? order_items_summary { get; set; }
     public string? table_type { get; set; }
+}
+
+public sealed class customer_record
+{
+    public int id { get; set; }
+    public string phone { get; set; } = string.Empty;
+    public string? full_name { get; set; }
+    public string? rank_name { get; set; }
+    public int points { get; set; }
+    public decimal total_spent { get; set; }
+    public int total_visits { get; set; }
+    public DateTime? last_played_at { get; set; }
+    public bool active { get; set; }
+    public string? note { get; set; }
+    public DateTime created_at { get; set; }
+    public DateTime updated_at { get; set; }
+}
+
+public sealed class customer_request
+{
+    public string? phone { get; set; }
+    public string? full_name { get; set; }
+    public string? rank_name { get; set; }
+    public int? points { get; set; }
+    public string? note { get; set; }
+}
+
+public sealed class membership_points_history_record
+{
+    public int id { get; set; }
+    public int customer_id { get; set; }
+    public int? payment_id { get; set; }
+    public int points_delta { get; set; }
+    public int points_after { get; set; }
+    public string reason { get; set; } = string.Empty;
+    public string? note { get; set; }
+    public DateTime created_at { get; set; }
 }
 
 public sealed class reservation_record

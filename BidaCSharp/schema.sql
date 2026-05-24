@@ -253,10 +253,42 @@ CREATE TABLE payments (
     total_amount DECIMAL(12,0) NOT NULL DEFAULT 0,
     payment_method ENUM('cash', 'transfer', 'card') DEFAULT 'cash',
     note TEXT,
+    customer_id INT DEFAULT NULL,
+    customer_phone VARCHAR(20) DEFAULT NULL,
+    customer_rank VARCHAR(30) DEFAULT NULL,
+    membership_points_earned INT NOT NULL DEFAULT 0,
     created_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (session_id) REFERENCES sessions(id),
     FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+CREATE TABLE customers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    phone VARCHAR(20) NOT NULL UNIQUE,
+    full_name VARCHAR(120) DEFAULT NULL,
+    rank_name VARCHAR(30) NOT NULL DEFAULT 'Member',
+    points INT NOT NULL DEFAULT 0,
+    total_spent DECIMAL(14,0) NOT NULL DEFAULT 0,
+    total_visits INT NOT NULL DEFAULT 0,
+    last_played_at DATETIME DEFAULT NULL,
+    note TEXT DEFAULT NULL,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE membership_points_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    payment_id INT DEFAULT NULL,
+    points_delta INT NOT NULL,
+    points_after INT NOT NULL,
+    reason VARCHAR(80) NOT NULL,
+    note TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    FOREIGN KEY (payment_id) REFERENCES payments(id)
 );
 
 -- Reservations

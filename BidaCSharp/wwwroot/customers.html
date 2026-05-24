@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Khách hàng / Membership - Billiard Club</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="/css/style.css?v=20260525-membership-1" rel="stylesheet">
+</head>
+<body>
+    <div class="main-content" id="mainContent">
+        <div class="page-header">
+            <div>
+                <h2><i class="bi bi-people me-2"></i>Khách hàng / Membership</h2>
+                <span class="breadcrumb">Tra cứu hội viên, điểm tích lũy, lịch sử thanh toán và cập nhật hạng thành viên</span>
+            </div>
+        </div>
+
+        <div class="card-dark mb-4">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-6">
+                        <label class="form-label">Tìm theo SĐT, tên hoặc hạng</label>
+                        <div class="toolbar-search">
+                            <i class="bi bi-search"></i>
+                            <input type="text" class="form-control" id="customerSearchInput" placeholder="Ví dụ: 098..., Nguyễn Văn A, Vàng">
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <button class="btn btn-gradient-primary w-100" id="customerSearchBtn">
+                            <i class="bi bi-search me-1"></i>Tìm
+                        </button>
+                    </div>
+                    <div class="col-lg-2">
+                        <button class="btn btn-outline-secondary w-100" id="customerResetBtn">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Đặt lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="bi bi-people-fill"></i></div>
+                    <div class="stat-value" id="membersCount">0</div>
+                    <div class="stat-label">Tổng member</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon success"><i class="bi bi-gem"></i></div>
+                    <div class="stat-value" id="membersTopRank">--</div>
+                    <div class="stat-label">Hạng cao nhất hiện có</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon warning"><i class="bi bi-stars"></i></div>
+                    <div class="stat-value" id="membersTotalPoints">0</div>
+                    <div class="stat-label">Tổng điểm tích lũy</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="bi bi-cash-stack"></i></div>
+                    <div class="stat-value" id="membersTotalSpent">0đ</div>
+                    <div class="stat-label">Doanh thu member</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-dark mb-4">
+            <div class="card-header">
+                <i class="bi bi-list-ul me-2"></i>Danh sách member
+            </div>
+            <div class="card-body" style="padding:0;overflow-x:auto">
+                <table class="table table-dark-custom mb-0">
+                    <thead>
+                        <tr>
+                            <th>SĐT</th>
+                            <th>Tên khách</th>
+                            <th>Hạng</th>
+                            <th>Điểm</th>
+                            <th>Lượt chơi</th>
+                            <th>Tổng chi</th>
+                            <th>Lần gần nhất</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <tr><td colspan="8" style="text-align:center;color:var(--text-muted)">Đang tải dữ liệu member...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="row g-4" id="customerDetailSection" style="display:none">
+            <div class="col-lg-4">
+                <div class="card-dark h-100">
+                    <div class="card-header">
+                        <i class="bi bi-person-badge me-2"></i>Thông tin member
+                    </div>
+                    <div class="card-body">
+                        <input type="hidden" id="detailCustomerId">
+                        <div class="mb-3">
+                            <label class="form-label">SĐT</label>
+                            <input type="text" class="form-control" id="detailCustomerPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tên khách</label>
+                            <input type="text" class="form-control" id="detailCustomerName">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Hạng</label>
+                            <input type="text" class="form-control" id="detailCustomerRank">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Điểm</label>
+                            <input type="number" class="form-control" id="detailCustomerPoints">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea class="form-control" id="detailCustomerNote" rows="3" placeholder="Ghi chú nội bộ nếu cần"></textarea>
+                        </div>
+                        <div class="d-grid">
+                            <button class="btn btn-gradient-success" id="saveCustomerBtn">
+                                <i class="bi bi-save me-1"></i>Lưu thông tin
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="card-dark mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-clock-history me-2"></i>Lịch sử thanh toán
+                    </div>
+                    <div class="card-body" style="padding:0;overflow-x:auto">
+                        <table class="table table-dark-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Bàn</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Điểm cộng</th>
+                                    <th>Thanh toán</th>
+                                    <th>Món đã gọi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerPaymentsBody">
+                                <tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Chọn một member để xem lịch sử thanh toán.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-dark">
+                    <div class="card-header">
+                        <i class="bi bi-stars me-2"></i>Lịch sử điểm
+                    </div>
+                    <div class="card-body" style="padding:0;overflow-x:auto">
+                        <table class="table table-dark-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Biến động</th>
+                                    <th>Điểm sau</th>
+                                    <th>Lý do</th>
+                                    <th>Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerPointsBody">
+                                <tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Chọn một member để xem lịch sử điểm.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script src="/js/common.js?v=20260525-membership-1"></script>
+    <script src="/js/customers.js?v=20260525-membership-1"></script>
+    <script src="/js/chatbot.js?v=20260418-stable-1"></script>
+</body>
+</html>
