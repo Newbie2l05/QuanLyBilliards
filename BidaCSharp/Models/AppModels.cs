@@ -67,6 +67,7 @@ public sealed class table_record
     public string? reservation_customer_phone { get; set; }
     public string? reservation_note { get; set; }
     public DateTime? reservation_time { get; set; }
+    public int? reservation_id { get; set; }
 }
 
 public sealed class table_request

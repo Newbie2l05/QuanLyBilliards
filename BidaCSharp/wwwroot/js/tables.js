@@ -1,4 +1,4 @@
-﻿// Tables management page
+// Tables management page
 let allTables = [];
 let currentTable = null;
 let currentSession = null;
@@ -573,6 +573,11 @@ function showAvailableView() {
                 <button class="btn btn-gradient-primary btn-lg" onclick="openReservationModal()">
                     <i class="bi bi-calendar-event me-2"></i>Đặt trước
                 </button>
+                ${currentTable.reservation_id ? `
+                <button class="btn btn-outline-danger btn-lg" onclick="cancelReservation(${currentTable.reservation_id})">
+                    <i class="bi bi-x-circle me-2"></i>Hủy đặt bàn
+                </button>
+                ` : ''}
             </div>
         </div>
     `;

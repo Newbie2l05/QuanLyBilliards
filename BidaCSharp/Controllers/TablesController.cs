@@ -1,4 +1,4 @@
-﻿using BidaCSharp.Data;
+using BidaCSharp.Data;
 using BidaCSharp.Models;
 using BidaCSharp.Services;
 using Dapper;
@@ -61,8 +61,8 @@ public sealed class TablesController : AppApiController
             GROUP BY s.table_id"))
             .ToDictionary(item => item.table_id, item => item);
 
-        var pendingReservations = (await connection.QueryAsync<(int table_id, string customer_name, string customer_phone, string note, DateTime reserved_time)>(@"
-            SELECT table_id, customer_name, customer_phone, note, reserved_time
+        var pendingReservations = (await connection.QueryAsync<(int table_id, string customer_name, string customer_phone, string note, DateTime reserved_time, int reservation_id)>(@"
+            SELECT table_id, customer_name, customer_phone, note, reserved_time, id as reservation_id
             FROM reservations
             WHERE status = 'pending'
             ORDER BY created_at DESC"))
@@ -83,6 +83,7 @@ public sealed class TablesController : AppApiController
                 table.reservation_customer_phone = reservation.customer_phone;
                 table.reservation_note = reservation.note;
                 table.reservation_time = reservation.reserved_time;
+                table.reservation_id = reservation.reservation_id;
             }
         }
 
