@@ -13,12 +13,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initSidebar();
 
+    function toLocalISOString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     const today = new Date();
     const fromDate = new Date(today);
     fromDate.setDate(today.getDate() - 6);
 
-    document.getElementById('filterFrom').value = fromDate.toISOString().split('T')[0];
-    document.getElementById('filterTo').value = today.toISOString().split('T')[0];
+    document.getElementById('filterFrom').value = toLocalISOString(fromDate);
+    document.getElementById('filterTo').value = toLocalISOString(today);
     document.getElementById('reportSearchInput')?.addEventListener('input', event => {
         reportSearchKeyword = event.target.value.trim().toLowerCase();
         reportsPage = 1;
@@ -67,10 +74,6 @@ function renderReports(efficiencySummary) {
     document.getElementById('efficiencyRate').textContent = `${Number(efficiencySummary?.avg_utilization_rate || 0).toLocaleString('vi-VN')}%`;
     document.getElementById('topTableName').textContent = efficiencySummary?.top_table?.table_name || '--';
 
-    renderRevenueChart(filteredPayments);
-    renderPaymentMethodChart(filteredPayments);
-    renderTableEfficiencyChart(filteredEfficiency);
-    renderTableRevenueChart(filteredEfficiency);
     renderTableEfficiencyTable(filteredEfficiency);
     renderPaymentsTable(filteredPayments);
 }

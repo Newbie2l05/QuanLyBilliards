@@ -71,24 +71,7 @@
             </div>
         </div>
 
-        <section class="analytics-grid mb-4">
-            <div class="chart-card">
-                <div class="card-header">
-                    <i class="bi bi-graph-up-arrow me-2"></i>Xu hướng doanh thu
-                </div>
-                <div class="card-body">
-                    <canvas id="reportsRevenueChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <div class="card-header">
-                    <i class="bi bi-credit-card-2-front me-2"></i>Cơ cấu phương thức thanh toán
-                </div>
-                <div class="card-body">
-                    <canvas id="paymentMethodChart"></canvas>
-                </div>
-            </div>
-        </section>
+
 
         <div class="row g-4 mb-4">
             <div class="col-md-4">
@@ -114,46 +97,33 @@
             </div>
         </div>
 
-        <section class="analytics-grid mb-4">
-            <div class="chart-card">
-                <div class="card-header">
-                    <i class="bi bi-speedometer2 me-2"></i>Hiệu suất sử dụng bàn
+        <div class="accordion mb-4" id="reportsAccordion">
+            <div class="accordion-item card-dark">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#reportTableEfficiency">
+                        <i class="bi bi-lightning me-2"></i>Chi tiết hiệu suất từng bàn
+                    </button>
+                </h2>
+                <div id="reportTableEfficiency" class="accordion-collapse collapse" data-bs-parent="#reportsAccordion">
+                    <div class="accordion-body" style="padding:0;overflow-x:auto">
+                        <table class="table table-dark-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Bàn</th>
+                                    <th>Loại</th>
+                                    <th>Số ca</th>
+                                    <th>Giờ chơi</th>
+                                    <th>TB / ca</th>
+                                    <th>Hiệu suất</th>
+                                    <th>Tiền bàn</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableEfficiencyList">
+                                <tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Đang tải dữ liệu hiệu suất...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="tableEfficiencyChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <div class="card-header">
-                    <i class="bi bi-currency-dollar me-2"></i>Doanh thu tiền bàn
-                </div>
-                <div class="card-body">
-                    <canvas id="tableRevenueChart"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <div class="card-dark report-payment-card mb-4">
-            <div class="card-header">
-                <i class="bi bi-lightning me-2"></i>Chi tiết hiệu suất từng bàn
-            </div>
-            <div class="card-body" style="padding:0;overflow-x:auto">
-                <table class="table table-dark-custom mb-0">
-                    <thead>
-                        <tr>
-                            <th>Bàn</th>
-                            <th>Loại</th>
-                            <th>Số ca</th>
-                            <th>Giờ chơi</th>
-                            <th>TB / ca</th>
-                            <th>Hiệu suất</th>
-                            <th>Tiền bàn</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableEfficiencyList">
-                        <tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Đang tải dữ liệu hiệu suất...</td></tr>
-                    </tbody>
-                </table>
             </div>
         </div>
 
