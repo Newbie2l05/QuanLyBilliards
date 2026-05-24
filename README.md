@@ -1,194 +1,209 @@
-# Hệ Thống Quản Lý Câu Lạc Bộ Billiards
+# 🎱 Billiard Club Pro — Hệ Thống Quản Lý Câu Lạc Bộ Billiards
 
-Đồ án xây dựng hệ thống quản lý câu lạc bộ billiards theo thời gian thực, hỗ trợ vận hành quán từ mở bàn, gọi món, thanh toán đến quản lý khách hàng thành viên, kho và báo cáo.
+<div align="center">
 
-## Thành viên thực hiện
+![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-9.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![SignalR](https://img.shields.io/badge/SignalR-Realtime-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
+![License](https://img.shields.io/badge/License-Education-green?style=for-the-badge)
 
-- Đặng Hoàng Tùng
-- Lâm Chí Thành
+**Hệ thống quản lý quán billiards theo thời gian thực, hỗ trợ vận hành bàn chơi, gọi món, kho, membership, QR order và báo cáo**
 
-## Mục tiêu dự án
+[Tính năng](#-tính-năng-chính) · [Cài đặt](#-hướng-dẫn-cài-đặt) · [Chạy project](#-hướng-dẫn-chạy-project) · [Deploy](#-deploy-demo) · [Thành viên](#-danh-sách-thành-viên)
 
-Hệ thống được xây dựng để giải quyết các nhu cầu vận hành thực tế của quán billiards:
+</div>
 
-- quản lý bàn và trạng thái bàn theo thời gian thực
-- mở bàn, đóng bàn, chuyển bàn, gộp bàn
-- gọi món và cộng bill trong phiên chơi
-- quản lý kho và tự động trừ kho khi phát sinh order
-- thanh toán linh hoạt theo giá giờ, combo, phụ thu và giảm giá
-- quản lý khách hàng thành viên theo số điện thoại
-- hỗ trợ QR Order cho khách gọi món tại bàn
-- theo dõi báo cáo doanh thu, hiệu suất bàn và lịch sử giao dịch
+---
 
-## Công nghệ sử dụng
+# 📋 Tên đề tài
 
-### Backend
+## Billiard Club Pro — Hệ Thống Quản Lý Câu Lạc Bộ Billiards
 
-- ASP.NET Core 9
-- Dapper
-- MySQL
-- JWT Authentication
-- SignalR
+---
 
-### Frontend
+# 📖 Giới thiệu hệ thống
 
-- HTML
-- CSS
-- JavaScript
-- Bootstrap 5
+**Billiard Club Pro** là hệ thống quản lý vận hành quán billiards được xây dựng để phục vụ các nghiệp vụ thực tế như quản lý bàn, gọi món, thanh toán, membership, kho nguyên liệu và QR order tại bàn.
 
-### Khác
+Hệ thống được phát triển bằng **ASP.NET Core 9 + MySQL + JavaScript + Bootstrap**, có giao diện quản trị realtime, hỗ trợ vận hành trên máy tính và trải nghiệm gọi món trên điện thoại cho khách hàng.
 
-- Cloudflare Tunnel hoặc ngrok để demo public
-- Postman để test API
+### 🎯 Mục tiêu dự án
 
-## Chức năng chính
+- Xây dựng hệ thống quản lý quán billiards hoàn chỉnh
+- Áp dụng kiến thức lập trình web full-stack vào bài toán thực tế
+- Tối ưu quy trình vận hành bàn, món, kho và thanh toán
+- Tạo trải nghiệm quản trị trực quan, hiện đại và dễ mở rộng
 
-### 1. Xác thực và phân quyền
+---
 
-- đăng nhập bằng JWT
-- phân quyền `admin` và `staff`
-- quản lý tạo tài khoản nhân viên trong phần cài đặt
+# 👥 Danh sách thành viên
 
-### 2. Quản lý bàn
+| Họ và tên | Vai trò |
+|-----------|---------|
+| **Đặng Hoàng Tùng** | Developer |
+| **Lâm Chí Thành** | Project Manager / Developer |
 
-- xem danh sách bàn theo trạng thái
-- mở bàn theo loại bàn
-- tính giờ chơi theo thời gian thực
-- chuyển bàn, gộp bàn
-- đặt bàn trước
-- tìm kiếm bàn theo tên bàn, trạng thái, món đang gọi và thông tin đặt bàn
+---
 
-### 3. Quản lý món và kho
+# 📌 Phân công nhiệm vụ
 
-- quản lý món bán trong một màn hình thống nhất
-- quản lý danh mục món
-- quản lý nguyên liệu kho
-- cấu hình món gắn với nguyên liệu
-- tự động trừ kho khi order được duyệt hoặc cộng bill
-- cảnh báo `sắp hết` và `tạm hết`
+| Thành viên | Công việc |
+|-----------|-----------|
+| **Đặng Hoàng Tùng** | Thiết kế và hoàn thiện giao diện quản trị, xử lý frontend, tối ưu trải nghiệm người dùng, tích hợp giao diện mobile QR order |
+| **Lâm Chí Thành** | Xây dựng backend, cơ sở dữ liệu, xử lý nghiệp vụ bàn chơi, thanh toán, membership, kho và triển khai hệ thống |
 
-### 4. Thanh toán
+---
 
-- tính tiền giờ chơi
-- tính giá theo khung giờ linh hoạt
-- áp dụng combo
-- phụ thu và giảm giá
-- copy nhanh nội dung hóa đơn
-- xuất thông tin thanh toán
+# ✨ Tính năng chính
 
-### 5. Membership
+## 🎱 Quản lý bàn
 
-- nhập số điện thoại khi thanh toán
-- tự tạo hoặc cập nhật member
-- lưu tổng chi tiêu, tổng giờ chơi, hạng thành viên
-- cấu hình mốc hạng membership
-- xem lịch sử thanh toán của member
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Quản lý trạng thái bàn** | Theo dõi bàn trống, đang chơi, đặt trước theo thời gian thực |
+| **Mở / đóng bàn** | Quản lý phiên chơi nhanh chóng |
+| **Chuyển bàn / gộp bàn** | Hỗ trợ xử lý linh hoạt khi khách đổi bàn |
+| **Tìm kiếm nâng cao** | Tìm theo tên bàn, trạng thái, món đang gọi, thông tin đặt bàn |
+| **QR order tại bàn** | Khách quét mã và gửi order trực tiếp từ điện thoại |
 
-### 6. QR Order tại bàn
+---
 
-- route mobile: `/table/{tableId}`
-- khách xem menu và gửi order bằng điện thoại
-- order vào trạng thái chờ duyệt
-- nhân viên duyệt mới cộng bill
-- có chống spam cơ bản khi gửi liên tiếp
+## 🍹 Menu, kho và order
 
-### 7. Dashboard và báo cáo
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Quản lý món bán** | Danh sách món, danh mục, giá, mô tả, ảnh |
+| **Quản lý kho** | Theo dõi số lượng nguyên liệu và mức tồn tối thiểu |
+| **Tự động trừ kho** | Khi order được duyệt hoặc cộng bill |
+| **Cảnh báo sắp hết / tạm hết** | Đồng bộ giữa kho và màn hình bán món |
+| **QR Order chờ duyệt** | Order của khách vào trạng thái pending, nhân viên duyệt mới cộng bill |
 
-- dashboard điều hành
-- theo dõi tỷ lệ lấp đầy
-- bàn đang phục vụ
-- món bán nổi bật
-- báo cáo doanh thu
-- hiệu suất bàn
-- tìm kiếm và lọc báo cáo
+---
 
-## Giao diện hệ thống
+## 💳 Thanh toán
 
-Các màn hình chính:
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Tính tiền giờ chơi** | Tính theo thời gian thực |
+| **Khung giờ linh hoạt** | Cấu hình giá theo từng mốc thời gian |
+| **Combo / phụ thu / giảm giá** | Hỗ trợ nhiều kịch bản thanh toán |
+| **Copy hóa đơn** | Sao chép hóa đơn ngắn, nội dung chuyển khoản, chi tiết món |
+| **Membership khi thanh toán** | Nhập SĐT để tự gắn khách hàng thành viên |
 
-- `index.html`: đăng nhập
-- `dashboard.html`: dashboard điều hành
-- `tables.html`: quản lý bàn
-- `menu.html`: sản phẩm và kho
-- `customers.html`: membership
-- `reports.html`: báo cáo
-- `settings.html`: cài đặt
-- `table-order.html`: giao diện QR Order trên điện thoại
+---
 
-## Cấu trúc thư mục
+## 👤 Membership
 
-```text
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Tìm theo số điện thoại** | Tìm member nhanh khi thanh toán hoặc quản lý riêng |
+| **Theo dõi tổng chi và tổng giờ** | Hỗ trợ đánh giá khách hàng thân thiết |
+| **Xếp hạng thành viên** | Cấu hình mốc hạng membership |
+| **Lịch sử thanh toán** | Xem lại toàn bộ giao dịch của từng member |
+| **Quản trị hạng** | Cấu hình quyền lợi theo từng hạng |
+
+---
+
+## 📊 Dashboard và báo cáo
+
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Dashboard điều hành** | Theo dõi công suất, bàn đang phục vụ, món nổi bật |
+| **Báo cáo doanh thu** | Tổng hợp thanh toán theo thời gian |
+| **Hiệu suất bàn** | Theo dõi bàn hoạt động tốt / ít hoạt động |
+| **Tìm kiếm chuyên sâu** | Lọc theo bàn, món, hình thức thanh toán, ghi chú |
+| **Realtime update** | Đồng bộ dữ liệu qua SignalR |
+
+---
+
+# 🎨 Giao diện và trải nghiệm
+
+- Giao diện dark mode hiện đại
+- Responsive trên desktop và mobile
+- Hiệu ứng mượt cho các modal và thao tác chính
+- Giao diện QR order tối ưu cho điện thoại
+- Sidebar và màn hình quản lý đồng bộ một ngôn ngữ thiết kế
+
+---
+
+# 🛠️ Công nghệ sử dụng
+
+| Công nghệ | Vai trò |
+|-----------|---------|
+| **ASP.NET Core 9** | Backend framework |
+| **Dapper** | Truy vấn dữ liệu |
+| **MySQL** | Cơ sở dữ liệu |
+| **JWT** | Xác thực người dùng |
+| **SignalR** | Đồng bộ realtime |
+| **HTML / CSS / JavaScript** | Frontend |
+| **Bootstrap 5** | UI framework |
+| **GitHub** | Quản lý source code |
+| **Laragon / MySQL local runtime** | Môi trường chạy local |
+| **Cloudflare Tunnel** | Demo public khi cần |
+
+---
+
+# 📁 Cấu trúc dự án
+
+```bash
 webnangcao/
-|-- BidaCSharp/
-|   |-- Controllers/
-|   |-- Data/
-|   |-- Hubs/
-|   |-- Models/
-|   |-- Services/
-|   |-- wwwroot/
-|   |   |-- css/
-|   |   |-- js/
-|   |   |-- images/
-|   |   |-- *.html
-|   |-- appsettings.json
-|   |-- schema.sql
-|   `-- BidaCSharp.csproj
-|-- postman/
-|-- run.bat
-|-- seed.sql
-`-- README.md
+├── BidaCSharp/
+│   ├── Controllers/
+│   ├── Data/
+│   ├── Hubs/
+│   ├── Models/
+│   ├── Services/
+│   ├── wwwroot/
+│   │   ├── css/
+│   │   ├── images/
+│   │   ├── js/
+│   │   ├── customers.html
+│   │   ├── dashboard.html
+│   │   ├── index.html
+│   │   ├── menu.html
+│   │   ├── reports.html
+│   │   ├── settings.html
+│   │   ├── table-order.html
+│   │   └── tables.html
+│   ├── appsettings.json
+│   ├── schema.sql
+│   └── BidaCSharp.csproj
+├── postman/
+├── run.bat
+├── seed.sql
+└── README.md
 ```
 
-## Yêu cầu môi trường
+---
 
-- Windows 10/11
-- .NET SDK 9
-- MySQL hoặc Laragon
-- VS Code hoặc Visual Studio
+# 🚀 Hướng dẫn cài đặt
 
-## Cách chạy dự án
+## 1. Clone repository
 
-### Cách 1. Chạy nhanh bằng script
-
-Tại thư mục gốc:
-
-```powershell
-.\run.bat
+```bash
+git clone https://github.com/Newbie2l05/QuanLyBilliards.git
 ```
 
-Script sẽ:
+---
 
-- chuyển vào thư mục `BidaCSharp`
-- chạy ứng dụng tại cổng `5289`
-- mở trình duyệt tại `http://localhost:5289`
+## 2. Cài môi trường
 
-### Cách 2. Chạy bằng lệnh dotnet
+Yêu cầu:
 
-```powershell
-cd .\BidaCSharp
-dotnet run
-```
+- `.NET SDK 9`
+- `MySQL` hoặc `Laragon`
+- `VS Code` hoặc `Visual Studio`
 
-Sau đó truy cập:
+---
 
-- `http://localhost:5289`
-
-## Cấu hình cơ sở dữ liệu
+## 3. Cấu hình database
 
 File cấu hình chính:
 
-- [D:\HocTap\webnangcao\BidaCSharp\appsettings.json](D:\HocTap\webnangcao\BidaCSharp\appsettings.json)
+- `BidaCSharp/appsettings.json`
 
-Mặc định dự án hỗ trợ 2 cách:
-
-### 1. Dùng MySQL local runtime trong project
-
-Dự án có sẵn service khởi động MySQL local ở cổng `3307`.
-
-### 2. Dùng Laragon hoặc MySQL ngoài
-
-Sửa `appsettings.json`:
+Ví dụ dùng MySQL ngoài:
 
 ```json
 {
@@ -201,44 +216,40 @@ Sửa `appsettings.json`:
 }
 ```
 
-Sau đó import file:
+Sau đó import:
 
-- [D:\HocTap\webnangcao\BidaCSharp\schema.sql](D:\HocTap\webnangcao\BidaCSharp\schema.sql)
+```text
+BidaCSharp/schema.sql
+```
 
-## Tài khoản và phân quyền
+---
 
-Hệ thống có 2 vai trò:
+# ▶️ Hướng dẫn chạy project
 
-- `admin`: toàn quyền quản trị
-- `staff`: quyền vận hành giới hạn
+## Chạy nhanh bằng script
 
-Tài khoản nhân viên được tạo và quản lý trong phần `Cài đặt`.
+Tại thư mục gốc:
 
-## API và realtime
+```powershell
+.\run.bat
+```
 
-Một số nhóm API chính:
+Ứng dụng sẽ chạy tại:
 
-- `/api/login`
-- `/api/me`
-- `/api/tables`
-- `/api/sessions`
-- `/api/orders`
-- `/api/payments`
-- `/api/menu-items`
-- `/api/inventory-items`
-- `/api/customers`
-- `/api/staff-users`
-- `/api/table-qr-orders`
+```text
+http://localhost:5289
+```
 
-SignalR hub:
+## Chạy bằng dotnet
 
-- `/hubs/operations`
+```powershell
+cd .\BidaCSharp
+dotnet run
+```
 
-Health check:
+---
 
-- `/health`
-
-## Demo QR Order
+# 📱 QR Order
 
 Link gọi món tại bàn:
 
@@ -252,13 +263,34 @@ Ví dụ:
 http://localhost:5289/table/1
 ```
 
-## Hướng dẫn deploy
+Chức năng này hỗ trợ:
 
-### Deploy nhanh để demo
+- xem menu trên điện thoại
+- thêm món vào giỏ
+- ghi chú món
+- gửi order chờ duyệt
+- chống spam gửi liên tục
 
-Cách phù hợp để demo:
+---
 
-1. chạy app trên máy local
+# 🔐 Phân quyền hệ thống
+
+| Vai trò | Quyền chính |
+|---------|-------------|
+| **Admin** | Toàn quyền quản trị hệ thống |
+| **Staff** | Vận hành bàn, order, thanh toán với quyền giới hạn |
+
+Tài khoản nhân viên được tạo trong mục `Cài đặt`.
+
+---
+
+# 🌐 Deploy demo
+
+## Demo nhanh để thầy kiểm tra
+
+Cách phù hợp nhất:
+
+1. chạy project trên máy local
 2. chạy database local
 3. public bằng Cloudflare Tunnel
 
@@ -268,36 +300,38 @@ Ví dụ:
 cloudflared tunnel --url http://localhost:5289
 ```
 
-### Publish bản release
+## Publish bản release
 
 ```powershell
 cd .\BidaCSharp
 dotnet publish -c Release -o .\publish
 ```
 
-Thư mục deploy:
+---
 
-- `BidaCSharp/publish`
+# ✅ Checklist trước khi demo
 
-## Kiểm thử nhanh trước khi demo
+- đăng nhập được hệ thống
+- mở bàn / đóng bàn hoạt động
+- gọi món và cộng bill đúng
+- kho tự cập nhật khi order
+- membership nhận SĐT khi thanh toán
+- QR order gửi được từ điện thoại
+- báo cáo và dashboard hiển thị đúng
 
-- kiểm tra trang đăng nhập mở được
-- kiểm tra mở bàn và đóng bàn
-- kiểm tra gọi món
-- kiểm tra thanh toán
-- kiểm tra membership bằng số điện thoại
-- kiểm tra QR Order trên điện thoại
-- kiểm tra báo cáo và dashboard
+---
 
-## Định hướng phát triển thêm
+# 📄 Ghi chú
 
-- tích hợp in hóa đơn trực tiếp
-- thống kê sâu theo ca làm việc
-- đồng bộ nhiều chi nhánh
-- nâng cấp membership sang đổi quà hoặc quy đổi ưu đãi
-- triển khai production với domain cố định
+- Dự án được phát triển phục vụ mục đích học tập, báo cáo và demo đồ án.
+- Có thể điều chỉnh lại cấu hình database theo máy sử dụng.
+- Nếu cần public nhanh để kiểm tra, nên dùng Cloudflare Tunnel.
 
-## Ghi chú
+---
 
-- Dự án phục vụ mục đích học tập, báo cáo và demo đồ án.
-- Một số cấu hình cục bộ có thể cần điều chỉnh lại theo máy sử dụng.
+<div align="center">
+
+## 🎱 Billiard Club Pro
+### Real-time Billiards Club Management System
+
+</div>
