@@ -333,7 +333,7 @@ function renderTableEfficiencyTable(filteredEfficiency) {
     tbody.innerHTML = filteredEfficiency.map(item => `
         <tr>
             <td><span class="report-payment-name">${item.table_name}</span></td>
-            <td>${item.table_type === 'vip' ? '<span class="badge report-method-badge is-other">VIP</span>' : '<span class="badge report-method-badge is-cash">Standard</span>'}</td>
+            <td>${item.table_type === 'vip' ? '<span class="badge report-method-badge is-other">Bàn VIP</span>' : '<span class="badge report-method-badge is-cash">Bàn thường</span>'}</td>
             <td>${item.sessions_count}</td>
             <td>${Number(item.total_hours || 0).toLocaleString('vi-VN')}h</td>
             <td>${formatDuration(item.avg_minutes || 0)}</td>

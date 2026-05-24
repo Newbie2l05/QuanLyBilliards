@@ -201,6 +201,39 @@
                 </div>
             </div>
 
+            <div class="accordion-item card-dark mb-3">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#settingsStaffUsers">
+                        <i class="bi bi-person-badge me-2"></i>Tài khoản nhân viên
+                    </button>
+                </h2>
+                <div id="settingsStaffUsers" class="accordion-collapse collapse" data-bs-parent="#settingsAccordion">
+                    <div class="accordion-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <div style="color:var(--text-secondary);font-size:13px">Quản lý chỉ có một tài khoản duy nhất. Mục này dùng để tạo và quản lý tài khoản nhân viên.</div>
+                            <button class="btn btn-sm btn-gradient-primary" onclick="showAddStaffUserModal()">
+                                <i class="bi bi-person-plus me-1"></i>Tạo nhân viên
+                            </button>
+                        </div>
+                        <div style="overflow-x:auto">
+                            <table class="table table-dark-custom mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Nhân viên</th>
+                                        <th>Tên đăng nhập</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staffUsersList">
+                                    <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Đang tải tài khoản nhân viên...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="accordion-item card-dark">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#settingsInventory">
@@ -303,11 +336,45 @@
         </div>
     </div>
 
+    <div class="modal fade" id="staffUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staffUserModalTitle">Tạo tài khoản nhân viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editStaffUserId">
+                    <div class="mb-3">
+                        <label class="form-label">Họ tên nhân viên</label>
+                        <input type="text" class="form-control" id="staffFullName" placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập</label>
+                        <input type="text" class="form-control" id="staffUsername" placeholder="nhanvien01">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu</label>
+                        <input type="password" class="form-control" id="staffPassword" placeholder="Để trống nếu không đổi khi đang sửa">
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="staffActive" checked>
+                        <label class="form-check-label" for="staffActive">Cho phép đăng nhập</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-gradient-success" onclick="saveStaffUser()">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
     <script src="/lib/qrcodejs/qrcode.min.js"></script>
-    <script src="/js/common.js?v=20260525-settings-1"></script>
-    <script src="/js/settings.js?v=20260525-settings-1"></script>
+    <script src="/js/common.js?v=20260525-admin-2"></script>
+    <script src="/js/settings.js?v=20260525-admin-2"></script>
     <script src="/js/chatbot.js?v=20260418-stable-1"></script>
 </body>
 </html>

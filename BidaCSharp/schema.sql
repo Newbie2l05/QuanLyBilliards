@@ -270,6 +270,7 @@ CREATE TABLE customers (
     rank_name VARCHAR(30) NOT NULL DEFAULT 'Member',
     points INT NOT NULL DEFAULT 0,
     total_spent DECIMAL(14,0) NOT NULL DEFAULT 0,
+    total_play_minutes INT NOT NULL DEFAULT 0,
     total_visits INT NOT NULL DEFAULT 0,
     last_played_at DATETIME DEFAULT NULL,
     note TEXT DEFAULT NULL,

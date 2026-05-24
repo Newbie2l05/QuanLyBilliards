@@ -37,6 +37,14 @@ public sealed class login_request
     public string? password { get; set; }
 }
 
+public sealed class staff_user_request
+{
+    public string? username { get; set; }
+    public string? password { get; set; }
+    public string? full_name { get; set; }
+    public bool? active { get; set; }
+}
+
 public sealed class login_response
 {
     public string token { get; set; } = string.Empty;
@@ -298,6 +306,7 @@ public sealed class customer_record
     public string? rank_name { get; set; }
     public int points { get; set; }
     public decimal total_spent { get; set; }
+    public int total_play_minutes { get; set; }
     public int total_visits { get; set; }
     public DateTime? last_played_at { get; set; }
     public bool active { get; set; }

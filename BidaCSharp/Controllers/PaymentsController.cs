@@ -6,6 +6,7 @@ using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.RegularExpressions;
+using System.Text.Json.Serialization;
 
 namespace BidaCSharp.Controllers;
 
@@ -25,6 +26,14 @@ public sealed class PaymentsController : AppApiController
         _connectionFactory = connectionFactory;
         _realtimeNotifier = realtimeNotifier;
         _pricingService = pricingService;
+    }
+
+    private sealed class MembershipRankRule
+    {
+        public string name { get; set; } = string.Empty;
+        public decimal min_spent { get; set; }
+        public int min_hours { get; set; }
+        public string? benefit { get; set; }
     }
 
     [HttpGet("surcharges")]
@@ -139,6 +148,8 @@ public sealed class PaymentsController : AppApiController
         var discountAmount = Math.Round(subtotal * discountPercent / 100m, 0, MidpointRounding.AwayFromZero);
         var totalAmount = subtotal - discountAmount;
         var normalizedPhone = NormalizePhone(request.customer_phone);
+        var settings = await GetSettingsDictionary(connection, transaction);
+        var membershipRules = ParseMembershipRankRules(settings);
 
         customer_record? customer = null;
         var pointsEarned = 0;
@@ -152,8 +163,8 @@ public sealed class PaymentsController : AppApiController
             if (customer is null)
             {
                 var customerId = await connection.ExecuteScalarAsync<int>(@"
-                    INSERT INTO customers (phone, rank_name, points, total_spent, total_visits, last_played_at, note)
-                    VALUES (@phone, 'Member', 0, 0, 0, @last_played_at, NULL);
+                    INSERT INTO customers (phone, rank_name, points, total_spent, total_play_minutes, total_visits, last_played_at, note)
+                    VALUES (@phone, 'Bronze', 0, 0, 0, 0, @last_played_at, NULL);
                     SELECT LAST_INSERT_ID();",
                     new
                     {
@@ -172,12 +183,14 @@ public sealed class PaymentsController : AppApiController
             var updatedPoints = customer.points + pointsEarned;
             var updatedVisits = customer.total_visits + 1;
             var updatedSpent = customer.total_spent + totalAmount;
-            var updatedRank = ResolveMembershipRank(updatedPoints, updatedSpent);
+            var updatedPlayMinutes = customer.total_play_minutes + finalPlayMinutes;
+            var updatedRank = ResolveMembershipRank(updatedSpent, updatedPlayMinutes, membershipRules);
 
             await connection.ExecuteAsync(@"
                 UPDATE customers
                 SET points = @points,
                     total_spent = @total_spent,
+                    total_play_minutes = @total_play_minutes,
                     total_visits = @total_visits,
                     last_played_at = @last_played_at,
                     rank_name = @rank_name,
@@ -188,6 +201,7 @@ public sealed class PaymentsController : AppApiController
                     id = customer.id,
                     points = updatedPoints,
                     total_spent = updatedSpent,
+                    total_play_minutes = updatedPlayMinutes,
                     total_visits = updatedVisits,
                     last_played_at = now,
                     rank_name = updatedRank
@@ -196,6 +210,7 @@ public sealed class PaymentsController : AppApiController
 
             customer.points = updatedPoints;
             customer.total_spent = updatedSpent;
+            customer.total_play_minutes = updatedPlayMinutes;
             customer.total_visits = updatedVisits;
             customer.last_played_at = now;
             customer.rank_name = updatedRank;
@@ -264,8 +279,6 @@ public sealed class PaymentsController : AppApiController
                 "SELECT * FROM order_items WHERE order_id IN @order_ids",
                 new { order_ids = orderIds },
                 transaction)).ToArray();
-        var settings = await GetSettingsDictionary(connection, transaction);
-
         transaction.Commit();
         await _realtimeNotifier.TableUpdatedAsync(session.table_id);
         await _realtimeNotifier.PaymentCompletedAsync(request.session_id.Value, paymentId);
@@ -422,28 +435,48 @@ public sealed class PaymentsController : AppApiController
         return Math.Max(0, (int)Math.Floor(totalAmount / 10000m));
     }
 
-    private static string ResolveMembershipRank(int points, decimal totalSpent)
+    private static string ResolveMembershipRank(decimal totalSpent, int totalPlayMinutes, IReadOnlyList<MembershipRankRule> rules)
     {
-        if (points >= 1500 || totalSpent >= 15000000m)
+        var totalHours = totalPlayMinutes / 60m;
+        foreach (var rule in rules.OrderByDescending(item => item.min_spent).ThenByDescending(item => item.min_hours))
         {
-            return "Kim cương";
+            if (totalSpent >= rule.min_spent || totalHours >= rule.min_hours)
+            {
+                return string.IsNullOrWhiteSpace(rule.name) ? "Bronze" : rule.name;
+            }
         }
 
-        if (points >= 800 || totalSpent >= 8000000m)
+        return "Bronze";
+    }
+
+    private static List<MembershipRankRule> ParseMembershipRankRules(Dictionary<string, string?> settings)
+    {
+        if (settings.TryGetValue("membership_rank_rules", out var rawValue) && !string.IsNullOrWhiteSpace(rawValue))
         {
-            return "Bạch kim";
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<List<MembershipRankRule>>(rawValue);
+                if (parsed is { Count: > 0 })
+                {
+                    return parsed
+                        .Where(item => !string.IsNullOrWhiteSpace(item.name))
+                        .OrderBy(item => item.min_spent)
+                        .ThenBy(item => item.min_hours)
+                        .ToList();
+                }
+            }
+            catch
+            {
+                // Fallback to defaults below.
+            }
         }
 
-        if (points >= 400 || totalSpent >= 4000000m)
+        return new List<MembershipRankRule>
         {
-            return "Vàng";
-        }
-
-        if (points >= 150 || totalSpent >= 1500000m)
-        {
-            return "Bạc";
-        }
-
-        return "Member";
+            new() { name = "Bronze", min_spent = 0, min_hours = 0, benefit = "Tích điểm" },
+            new() { name = "Silver", min_spent = 2000000m, min_hours = 20, benefit = "Giảm 5%" },
+            new() { name = "Gold", min_spent = 5000000m, min_hours = 60, benefit = "Giảm 10%" },
+            new() { name = "VIP", min_spent = 10000000m, min_hours = 150, benefit = "Giảm 15% + ưu tiên bàn VIP" }
+        };
     }
 }

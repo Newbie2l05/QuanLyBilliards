@@ -71,7 +71,7 @@ function renderQrHero() {
                 <div style="font-size:12px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px">${settings.club_name || 'Billiard Club'}</div>
                 <div style="font-size:28px;font-weight:800;margin-top:4px">${table.name}</div>
                 <div style="color:var(--text-secondary);margin-top:6px">
-                    ${table.type === 'vip' ? 'Bàn VIP' : 'Bàn thường'}
+                    ${getTableTypeLabel(table.type)}
                     ${session ? ` • Phiên #${session.id}` : ''}
                 </div>
             </div>

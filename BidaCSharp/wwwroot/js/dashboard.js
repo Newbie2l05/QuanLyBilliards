@@ -179,6 +179,10 @@ async function loadDashboard() {
             topList.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px">Chưa có dữ liệu bán hàng</p>';
         }
 
+        if (!isAdmin()) {
+            document.querySelector('.page-hero-actions a[href="/menu.html"]')?.remove();
+        }
+
         const sessionList = document.getElementById('recentSessionsList');
         if (Array.isArray(data.recentSessions) && data.recentSessions.length > 0) {
             sessionList.innerHTML = `

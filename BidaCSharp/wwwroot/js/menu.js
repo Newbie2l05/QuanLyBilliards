@@ -648,7 +648,7 @@ async function quickAdjustInventory(id, direction) {
     try {
         await apiCall(`/api/inventory-items/${id}/adjust`, {
             method: 'POST',
-            body: JSON.stringify({ amount: direction > 0 ? numericAmount : -numericAmount })
+            body: JSON.stringify({ quantity_change: direction > 0 ? numericAmount : -numericAmount })
         });
         showToast('Đã cập nhật tồn kho');
         await loadMenuPage();

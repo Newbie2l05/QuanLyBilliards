@@ -487,7 +487,7 @@ function renderTables() {
                 <i class="bi bi-${status === 'playing' ? 'play-circle-fill' : status === 'reserved' ? 'clock-fill' : 'circle'}"></i>
             </div>
             <div class="table-name">${table.name} ${table.type === 'vip' ? '<span class="badge-vip">VIP</span>' : ''}</div>
-            <div class="table-type">${table.type}</div>
+            <div class="table-type">${getTableTypeLabel(table.type)}</div>
             <div class="table-price">Giá: <span>${formatCurrency(table.price_per_hour)}</span>/giờ</div>
             <div class="table-status">${getTableStatusLabel(status)}</div>
             ${comboBadge}
@@ -530,7 +530,7 @@ async function openTable(tableId) {
     if (!currentTable) return;
 
     const modal = new bootstrap.Modal(document.getElementById('tableModal'));
-    document.getElementById('tableModalTitle').textContent = `${currentTable.name} ${currentTable.type === 'vip' ? '(VIP)' : ''}`;
+    document.getElementById('tableModalTitle').textContent = `${currentTable.name} ${currentTable.type === 'vip' ? '(Bàn VIP)' : '(Bàn thường)'}`;
     updateTableModalHeaderActions(currentTable.status);
 
     if (currentTable.status === 'available') {
@@ -1583,6 +1583,10 @@ function setDiscount(percent, btn) {
     recalcLiveTotal();
 }
 
+function normalizeMembershipPhone(value) {
+    return String(value || '').replace(/\D/g, '');
+}
+
 async function lookupPaymentCustomer() {
     const input = document.getElementById('paymentCustomerPhone');
     const preview = document.getElementById('paymentCustomerPreview');
@@ -1594,16 +1598,22 @@ async function lookupPaymentCustomer() {
         return;
     }
 
+    const normalizedPhone = normalizeMembershipPhone(phone);
+    if (normalizedPhone.length < 9 || normalizedPhone.length > 15) {
+        preview.innerHTML = '<span style="color:var(--warning)">SĐT member phải có từ 9 đến 15 số.</span>';
+        return;
+    }
+
     try {
-        const customer = await apiCall(`/api/customers/lookup?phone=${encodeURIComponent(phone)}`);
+        const customer = await apiCall(`/api/customers/lookup?phone=${encodeURIComponent(normalizedPhone)}`);
         if (!customer) {
-            preview.innerHTML = '<span style="color:var(--warning)">Sẽ tạo member mới cho SĐT này sau khi thanh toán.</span>';
+            preview.innerHTML = '<span style="color:var(--warning)">SĐT hợp lệ. Hệ thống sẽ tạo member mới sau khi thanh toán.</span>';
             return;
         }
 
         preview.innerHTML = `
             <span style="color:var(--success);font-weight:600">${customer.full_name || 'Khách member'}</span>
-            <span style="color:var(--text-secondary)"> • Hạng ${customer.rank_name || 'Member'} • ${customer.points || 0} điểm</span>
+            <span style="color:var(--text-secondary)"> • Hạng ${customer.rank_name || 'Bronze'}</span>
         `;
     } catch {
         preview.innerHTML = '<span style="color:var(--warning)">Không tải được thông tin member lúc này.</span>';
@@ -1617,6 +1627,12 @@ async function doPayment() {
     const paymentMethod = document.getElementById('paymentMethod').value;
     const note = document.getElementById('paymentNote').value;
     const customerPhone = document.getElementById('paymentCustomerPhone')?.value?.trim() || null;
+    const normalizedPhone = normalizeMembershipPhone(customerPhone);
+
+    if (customerPhone && (normalizedPhone.length < 9 || normalizedPhone.length > 15)) {
+        showToast('SĐT member phải có từ 9 đến 15 số hoặc để trống', 'danger');
+        return;
+    }
 
     try {
         const result = await apiCall('/api/payment', {
@@ -1627,7 +1643,7 @@ async function doPayment() {
                 payment_method: paymentMethod,
                 surcharge_ids: surchargeIds,
                 note,
-                customer_phone: customerPhone
+                customer_phone: customerPhone ? normalizedPhone : null
             })
         });
 
@@ -1742,7 +1758,6 @@ function buildPaymentCopyText(type, payload) {
         `Tiền món: ${formatCurrency(payload.order_amount || 0)}`,
         payload.customer_phone ? `SĐT member: ${payload.customer_phone}` : '',
         payload.customer?.rank_name ? `Hạng: ${payload.customer.rank_name}` : '',
-        payload.membership_points_earned ? `Điểm cộng: +${payload.membership_points_earned}` : '',
         `Tổng thanh toán: ${formatCurrency(payload.total_amount || 0)}`,
         `Thanh toán: ${getPaymentMethodLabel(payload.payment_method || 'cash')}`,
         `Món đã gọi:\n${itemsText}`
@@ -1871,7 +1886,6 @@ function showInvoice(data) {
                 ${data.combo_gift_name ? `<div><strong>Quà tặng:</strong> ${data.combo_gift_name}</div>` : ''}
                 ${data.customer_phone ? `<div><strong>SĐT member:</strong> ${data.customer_phone}</div>` : ''}
                 ${data.customer?.rank_name ? `<div><strong>Hạng:</strong> ${data.customer.rank_name}</div>` : ''}
-                ${data.membership_points_earned ? `<div><strong>Điểm cộng:</strong> +${data.membership_points_earned}</div>` : ''}
             </div>
 
             ${data.order_items && data.order_items.length > 0 ? `

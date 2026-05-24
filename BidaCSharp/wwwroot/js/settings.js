@@ -3,6 +3,7 @@ let managedTables = [];
 let inventoryItems = [];
 let comboConfigs = [];
 let pricingConfigs = getDefaultPricingConfig();
+let staffUsers = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth()) return;
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('inventoryModal')?.remove();
     loadSettings().finally(() => {
         loadTablesList();
+        loadStaffUsers();
     });
 });
 
@@ -152,7 +154,7 @@ function renderPricingSettings() {
         <div class="col-12" data-pricing-id="${slot.id}">
             <div class="p-3 rounded fade-in" style="background:var(--bg-input);border:1px solid var(--border-color)">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div style="font-weight:700">Khung giờ ${index + 1}</div>
+                    <div style="font-weight:700;color:var(--text-primary)">Khung giờ ${index + 1}</div>
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePricingSlot(${slot.id})">
                         <i class="bi bi-trash"></i>
                     </button>
@@ -387,6 +389,33 @@ function getComboSummary(tableType) {
         .join('<br>');
 }
 
+async function loadStaffUsers() {
+    const tbody = document.getElementById('staffUsersList');
+    if (!tbody) return;
+
+    try {
+        staffUsers = await apiCall('/api/staff-users');
+        if (!Array.isArray(staffUsers) || !staffUsers.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Chưa có tài khoản nhân viên nào</td></tr>';
+            return;
+        }
+        tbody.innerHTML = staffUsers.map(user => `
+            <tr>
+                <td>${user.full_name}</td>
+                <td>${user.username}</td>
+                <td>${user.active ? '<span class="badge report-method-badge is-cash">Đang dùng</span>' : '<span class="badge report-method-badge is-other">Đã khóa</span>'}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editStaffUser(${user.id})"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteStaffUser(${user.id})"><i class="bi bi-person-x"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        const isAuthError = /unauthorized|401|forbidden|403/i.test(String(err?.message || ''));
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#ff8f85">${isAuthError ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' : (err.message || 'Không tải được danh sách nhân viên')}</td></tr>`;
+    }
+}
+
 async function loadTablesList() {
     try {
         managedTables = await apiCall('/api/tables');
@@ -394,7 +423,7 @@ async function loadTablesList() {
         tbody.innerHTML = managedTables.map(table => `
             <tr>
                 <td><span class="settings-table-name">${table.name}</span></td>
-                <td>${table.type === 'vip' ? '<span class="badge-vip">VIP</span>' : '<span class="settings-table-type">Standard</span>'}</td>
+                <td>${table.type === 'vip' ? '<span class="badge-vip">Bàn VIP</span>' : '<span class="settings-table-type">Bàn thường</span>'}</td>
                 <td><span class="settings-table-price">${formatCurrency(table.price_per_hour)}</span></td>
                 <td style="font-size:12px;line-height:1.5">${getComboSummary(table.type) || '<span class="settings-table-type">Chưa cấu hình</span>'}</td>
                 <td>
@@ -417,6 +446,68 @@ function fillTableForm(table) {
     document.getElementById('tableName').value = table?.name || '';
     document.getElementById('tableType').value = table?.type || 'standard';
     document.getElementById('tablePrice').value = table?.price_per_hour || 60000;
+}
+
+function showAddStaffUserModal() {
+    document.getElementById('staffUserModalTitle').textContent = 'Tạo tài khoản nhân viên';
+    document.getElementById('editStaffUserId').value = '';
+    document.getElementById('staffUsername').value = '';
+    document.getElementById('staffPassword').value = '';
+    document.getElementById('staffFullName').value = '';
+    document.getElementById('staffActive').checked = true;
+    new bootstrap.Modal(document.getElementById('staffUserModal')).show();
+}
+
+function editStaffUser(id) {
+    const user = staffUsers.find(item => item.id === id);
+    if (!user) return;
+
+    document.getElementById('staffUserModalTitle').textContent = 'Sửa tài khoản nhân viên';
+    document.getElementById('editStaffUserId').value = user.id;
+    document.getElementById('staffUsername').value = user.username;
+    document.getElementById('staffPassword').value = '';
+    document.getElementById('staffFullName').value = user.full_name;
+    document.getElementById('staffActive').checked = Boolean(user.active);
+    new bootstrap.Modal(document.getElementById('staffUserModal')).show();
+}
+
+async function saveStaffUser() {
+    const id = document.getElementById('editStaffUserId').value;
+    const payload = {
+        username: document.getElementById('staffUsername').value.trim(),
+        password: document.getElementById('staffPassword').value,
+        full_name: document.getElementById('staffFullName').value.trim(),
+        active: document.getElementById('staffActive').checked
+    };
+
+    if (!payload.username || !payload.full_name || (!id && !payload.password)) {
+        showToast('Điền đủ thông tin tài khoản nhân viên', 'danger');
+        return;
+    }
+
+    try {
+        await apiCall(id ? `/api/staff-users/${id}` : '/api/staff-users', {
+            method: id ? 'PUT' : 'POST',
+            body: JSON.stringify(payload)
+        });
+        bootstrap.Modal.getInstance(document.getElementById('staffUserModal'))?.hide();
+        showToast(id ? 'Đã cập nhật tài khoản nhân viên' : 'Đã tạo tài khoản nhân viên');
+        await loadStaffUsers();
+    } catch (err) {
+        showToast(err.message, 'danger');
+    }
+}
+
+async function deleteStaffUser(id) {
+    if (!confirm('Vô hiệu hóa tài khoản nhân viên này?')) return;
+
+    try {
+        await apiCall(`/api/staff-users/${id}`, { method: 'DELETE' });
+        showToast('Đã vô hiệu hóa tài khoản');
+        await loadStaffUsers();
+    } catch (err) {
+        showToast(err.message, 'danger');
+    }
 }
 
 function showAddTableModal() {

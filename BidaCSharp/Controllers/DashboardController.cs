@@ -30,12 +30,13 @@ public sealed class DashboardController : AppApiController
         var revenueToday = await connection.ExecuteScalarAsync<decimal>("SELECT COALESCE(SUM(total_amount), 0) FROM payments WHERE DATE(created_at) = CURDATE()");
         var revenueMonth = await connection.ExecuteScalarAsync<decimal>("SELECT COALESCE(SUM(total_amount), 0) FROM payments WHERE MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())");
         var topItems = await connection.QueryAsync<report_top_item>(@"
-            SELECT oi.item_name, SUM(oi.quantity) AS total_qty, SUM(oi.subtotal) AS total_revenue
+            SELECT mi.name AS item_name, SUM(oi.quantity) AS total_qty, SUM(oi.subtotal) AS total_revenue
             FROM order_items oi
             JOIN orders o ON oi.order_id = o.id
-            WHERE o.status = 'completed'
-            GROUP BY oi.item_name
-            ORDER BY total_qty DESC
+            JOIN menu_items mi ON mi.id = oi.menu_item_id
+            WHERE o.status = 'completed' AND mi.active = 1
+            GROUP BY mi.id, mi.name
+            ORDER BY total_qty DESC, total_revenue DESC
             LIMIT 5");
         var recentSessions = await connection.QueryAsync<session_record>(@"
             SELECT s.*, t.name AS table_name
@@ -58,8 +59,8 @@ public sealed class DashboardController : AppApiController
         var tableTypeBreakdown = await connection.QueryAsync<label_value_record>(@"
             SELECT
                 CASE type
-                    WHEN 'vip' THEN 'VIP'
-                    ELSE 'Standard'
+                    WHEN 'vip' THEN 'Bàn VIP'
+                    ELSE 'Bàn thường'
                 END AS label,
                 COUNT(*) AS value
             FROM `tables`

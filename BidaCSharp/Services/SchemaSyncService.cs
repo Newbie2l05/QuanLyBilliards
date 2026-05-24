@@ -89,6 +89,7 @@ public sealed class SchemaSyncService : IHostedService
             await EnsureColumnAsync("payments", "customer_phone", "customer_phone VARCHAR(20) NULL AFTER customer_id");
             await EnsureColumnAsync("payments", "customer_rank", "customer_rank VARCHAR(30) NULL AFTER customer_phone");
             await EnsureColumnAsync("payments", "membership_points_earned", "membership_points_earned INT NOT NULL DEFAULT 0 AFTER customer_rank");
+            await EnsureColumnAsync("customers", "total_play_minutes", "total_play_minutes INT NOT NULL DEFAULT 0 AFTER total_spent");
 
             await connection.ExecuteAsync("""
                 CREATE TABLE IF NOT EXISTS table_order_requests (
@@ -133,6 +134,7 @@ public sealed class SchemaSyncService : IHostedService
                     rank_name VARCHAR(30) NOT NULL DEFAULT 'Member',
                     points INT NOT NULL DEFAULT 0,
                     total_spent DECIMAL(14,0) NOT NULL DEFAULT 0,
+                    total_play_minutes INT NOT NULL DEFAULT 0,
                     total_visits INT NOT NULL DEFAULT 0,
                     last_played_at DATETIME DEFAULT NULL,
                     note TEXT DEFAULT NULL,

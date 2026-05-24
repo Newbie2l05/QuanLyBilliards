@@ -25,6 +25,10 @@ function isAdmin() {
     return getUser()?.role === 'admin';
 }
 
+function getTableTypeLabel(type) {
+    return type === 'vip' ? 'Bàn VIP' : 'Bàn thường';
+}
+
 function logout() {
     if (typeof clearChatHistory === 'function') clearChatHistory();
     localStorage.removeItem('token');
@@ -440,9 +444,10 @@ async function initSidebar() {
                 <a href="/menu.html" class="nav-link" data-page="menu">
                     <i class="bi bi-book"></i> Menu
                 </a>
+                ${user.role === 'admin' ? `
                 <a href="/customers.html" class="nav-link" data-page="customers">
-                    <i class="bi bi-people"></i> KhÃ¡ch hÃ ng / Membership
-                </a>
+                    <i class="bi bi-people"></i> Membership
+                </a>` : ''}
                 <a href="/reports.html" class="nav-link" data-page="reports">
                     <i class="bi bi-bar-chart-line"></i> Báo cáo
                 </a>
