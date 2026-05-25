@@ -17,7 +17,6 @@ builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddSingleton<IRealtimeNotifier, SignalRRealtimeNotifier>();
 builder.Services.AddSingleton<InventoryService>();
 builder.Services.AddSingleton<PricingService>();
-builder.Services.AddHostedService<LocalMySqlRuntimeService>();
 builder.Services.AddHostedService<SchemaSyncService>();
 builder.Services.AddSignalR();
 builder.Services.AddAuthorization();

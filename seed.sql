@@ -1,4 +1,4 @@
-USE billiard_club_dev;
+USE billiard_club;
 
 -- 1. Xóa dữ liệu tồn kho cũ để seed lại từ đầu (nếu có)
 SET FOREIGN_KEY_CHECKS = 0;

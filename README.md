@@ -208,7 +208,7 @@ Ví dụ dùng MySQL ngoài:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=127.0.0.1;Port=3306;Database=billiard_club_dev;User ID=root;Password=;Allow User Variables=True;"
+    "DefaultConnection": "Server=127.0.0.1;Port=3306;Database=billiard_club;User ID=root;Password=;Allow User Variables=True;"
   },
   "LocalRuntimeDatabase": {
     "Enabled": false
@@ -220,6 +220,12 @@ Sau đó import:
 
 ```text
 BidaCSharp/schema.sql
+```
+
+Nếu cần dữ liệu kho mẫu thì import tiếp:
+
+```text
+seed.sql
 ```
 
 ---
