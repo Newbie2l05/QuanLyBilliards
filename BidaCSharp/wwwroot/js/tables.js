@@ -166,6 +166,12 @@ function markNotificationsRead() {
     renderNotifications();
 }
 
+function removeQrRequestNotification(requestId) {
+    notifications = notifications.filter(item => item.data?.requestId !== requestId);
+    knownPendingQrRequestIds.delete(requestId);
+    renderNotifications();
+}
+
 async function refreshPendingQrSummary(notifyNew = false) {
     try {
         const items = await apiCall('/api/table-order-requests/pending-summary');
@@ -198,9 +204,7 @@ async function approveQrRequestFromNotification(requestId, sessionId, tableId) {
     try {
         await apiCall(`/api/table-order-requests/${requestId}/approve`, { method: 'POST' });
         showToast('Đã duyệt order QR');
-        notifications = notifications.filter(item => item.data?.requestId !== requestId);
-        knownPendingQrRequestIds.delete(requestId);
-        renderNotifications();
+        removeQrRequestNotification(requestId);
         await refreshPendingQrSummary(false);
 
         if (currentSession && currentSession.id === sessionId) {
@@ -1219,6 +1223,7 @@ async function approvePendingQrRequest(requestId) {
     try {
         await apiCall(`/api/table-order-requests/${requestId}/approve`, { method: 'POST' });
         showToast('Đã duyệt order QR');
+        removeQrRequestNotification(requestId);
         await loadOrderForSession(currentSession.id);
         await loadPendingQrRequests(currentSession.id);
         await refreshPendingQrSummary(false);
@@ -1231,6 +1236,7 @@ async function rejectPendingQrRequest(requestId) {
     try {
         await apiCall(`/api/table-order-requests/${requestId}/reject`, { method: 'POST' });
         showToast('Đã từ chối order QR');
+        removeQrRequestNotification(requestId);
         await loadPendingQrRequests(currentSession.id);
         await refreshPendingQrSummary(false);
     } catch (err) {

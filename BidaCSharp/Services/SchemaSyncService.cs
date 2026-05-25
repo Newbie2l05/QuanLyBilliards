@@ -37,6 +37,22 @@ public sealed class SchemaSyncService : IHostedService
                 }
             }
 
+            async Task EnsureTableUtf8mb4Async(string tableName)
+            {
+                var tableCollation = await connection.ExecuteScalarAsync<string?>(
+                    """
+                    SELECT TABLE_COLLATION
+                    FROM information_schema.TABLES
+                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @tableName
+                    """,
+                    new { tableName });
+
+                if (!string.Equals(tableCollation, "utf8mb4_unicode_ci", StringComparison.OrdinalIgnoreCase))
+                {
+                    await connection.ExecuteAsync($"ALTER TABLE `{tableName}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+                }
+            }
+
             await connection.ExecuteAsync("""
                 CREATE TABLE IF NOT EXISTS inventory_items (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -158,6 +174,8 @@ public sealed class SchemaSyncService : IHostedService
                     CONSTRAINT fk_membership_history_payment FOREIGN KEY (payment_id) REFERENCES payments(id)
                 );
                 """);
+
+            await EnsureTableUtf8mb4Async("users");
 
             _logger.LogInformation("Supplemental schema sync completed.");
         }

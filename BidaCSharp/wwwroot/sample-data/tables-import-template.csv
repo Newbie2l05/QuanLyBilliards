@@ -1,0 +1,21 @@
+name,type,price_per_hour,position_order
+Ban 01,standard,60000,1
+Ban 02,standard,60000,2
+Ban 03,standard,60000,3
+Ban 04,standard,60000,4
+Ban 05,standard,60000,5
+Ban 06,standard,60000,6
+Ban 07,standard,60000,7
+Ban 08,standard,60000,8
+Ban 09,standard,60000,9
+Ban 10,standard,60000,10
+Ban 11,standard,70000,11
+Ban 12,standard,70000,12
+Ban VIP 01,vip,90000,13
+Ban VIP 02,vip,90000,14
+Ban VIP 03,vip,90000,15
+Ban VIP 04,vip,90000,16
+Ban VIP 05,vip,100000,17
+Ban VIP 06,vip,100000,18
+Ban Tournament 01,vip,120000,19
+Ban Tournament 02,vip,120000,20

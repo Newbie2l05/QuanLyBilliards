@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initSidebar();
+    document.getElementById('tableCsvFileInput')?.addEventListener('change', importTablesCsv);
     document.getElementById('settingsInventory')?.closest('.accordion-item')?.remove();
     document.getElementById('inventoryModal')?.remove();
     loadSettings().finally(() => {
@@ -498,6 +499,13 @@ async function saveStaffUser() {
     }
 }
 
+function promptImportTablesCsv() {
+    const input = document.getElementById('tableCsvFileInput');
+    if (!input) return;
+    input.value = '';
+    input.click();
+}
+
 async function deleteStaffUser(id) {
     if (!confirm('Vô hiệu hóa tài khoản nhân viên này?')) return;
 
@@ -561,6 +569,36 @@ async function saveTable() {
         loadTablesList();
     } catch (err) {
         showToast(err.message, 'danger');
+    }
+}
+
+async function importTablesCsv(event) {
+    const input = event?.target;
+    const file = input?.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('/api/tables/import', {
+            method: 'POST',
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            body: formData
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Import CSV that bai');
+        }
+
+        showToast(data.message || 'Import ban thanh cong!');
+        await loadTablesList();
+    } catch (err) {
+        showToast(err.message, 'danger');
+    } finally {
+        input.value = '';
     }
 }
 

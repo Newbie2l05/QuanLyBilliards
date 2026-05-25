@@ -4,6 +4,7 @@ using BidaCSharp.Services;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace BidaCSharp.Controllers;
 
@@ -96,7 +97,7 @@ public sealed class TablesController : AppApiController
     {
         if (string.IsNullOrWhiteSpace(request.name) || request.price_per_hour is null)
         {
-            return ApiError("name và price_per_hour là bắt buộc", 400);
+            return ApiError("name va price_per_hour la bat buoc", 400);
         }
 
         using var connection = _connectionFactory.CreateConnection();
@@ -126,7 +127,7 @@ public sealed class TablesController : AppApiController
     {
         if (string.IsNullOrWhiteSpace(request.name) || request.price_per_hour is null)
         {
-            return ApiError("name và price_per_hour là bắt buộc", 400);
+            return ApiError("name va price_per_hour la bat buoc", 400);
         }
 
         using var connection = _connectionFactory.CreateConnection();
@@ -162,16 +163,137 @@ public sealed class TablesController : AppApiController
 
         if (table is null)
         {
-            return ApiError("Bàn không tồn tại", 404);
+            return ApiError("Ban khong ton tai", 404);
         }
 
         if (!string.Equals(table.status, "available", StringComparison.OrdinalIgnoreCase))
         {
-            return ApiError("Chỉ xóa được bàn đang trống", 400);
+            return ApiError("Chi xoa duoc ban dang trong", 400);
         }
 
         await connection.ExecuteAsync("UPDATE `tables` SET active = 0 WHERE id = @id", new { id });
         await _realtimeNotifier.TableUpdatedAsync(id);
-        return Ok(new { message = "Đã xóa bàn" });
+        return Ok(new { message = "Da xoa ban" });
+    }
+
+    [Authorize(Roles = "admin")]
+    [HttpPost("tables/import")]
+    public async Task<IActionResult> ImportTablesCsv(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return ApiError("Khong tim thay file", 400);
+        }
+
+        using var reader = new StreamReader(file.OpenReadStream());
+        _ = await reader.ReadLineAsync();
+
+        var importedIds = new List<int>();
+        var successCount = 0;
+
+        using var connection = _connectionFactory.CreateConnection();
+        await connection.OpenAsync();
+        using var transaction = connection.BeginTransaction();
+
+        try
+        {
+            while (!reader.EndOfStream)
+            {
+                var line = await reader.ReadLineAsync();
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                var values = line.Split(',');
+                if (values.Length < 3)
+                {
+                    continue;
+                }
+
+                var name = values[0].Trim();
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    continue;
+                }
+
+                var type = values[1].Trim().ToLowerInvariant();
+                if (type != "vip")
+                {
+                    type = "standard";
+                }
+
+                var priceText = values[2].Trim();
+                if (!decimal.TryParse(priceText, NumberStyles.Number, CultureInfo.InvariantCulture, out var pricePerHour)
+                    && !decimal.TryParse(priceText, NumberStyles.Number, CultureInfo.GetCultureInfo("vi-VN"), out pricePerHour))
+                {
+                    continue;
+                }
+
+                var positionOrder = 0;
+                if (values.Length >= 4)
+                {
+                    int.TryParse(values[3].Trim(), out positionOrder);
+                }
+
+                var existingId = await connection.ExecuteScalarAsync<int?>(
+                    "SELECT id FROM `tables` WHERE name = @name LIMIT 1",
+                    new { name },
+                    transaction);
+
+                if (existingId.HasValue)
+                {
+                    await connection.ExecuteAsync(@"
+                        UPDATE `tables`
+                        SET type = @type,
+                            price_per_hour = @price_per_hour,
+                            position_order = @position_order,
+                            active = 1
+                        WHERE id = @id",
+                        new
+                        {
+                            id = existingId.Value,
+                            type,
+                            price_per_hour = pricePerHour,
+                            position_order = positionOrder
+                        },
+                        transaction);
+
+                    importedIds.Add(existingId.Value);
+                }
+                else
+                {
+                    var id = await connection.ExecuteScalarAsync<int>(@"
+                        INSERT INTO `tables` (name, type, price_per_hour, position_order)
+                        VALUES (@name, @type, @price_per_hour, @position_order);
+                        SELECT LAST_INSERT_ID();",
+                        new
+                        {
+                            name,
+                            type,
+                            price_per_hour = pricePerHour,
+                            position_order = positionOrder
+                        },
+                        transaction);
+
+                    importedIds.Add(id);
+                }
+
+                successCount++;
+            }
+
+            transaction.Commit();
+
+            foreach (var tableId in importedIds.Distinct())
+            {
+                await _realtimeNotifier.TableUpdatedAsync(tableId);
+            }
+
+            return Ok(new { message = $"Da import {successCount} ban thanh cong" });
+        }
+        catch (Exception ex)
+        {
+            return ApiError("Loi khi doc file CSV: " + ex.Message, 500);
+        }
     }
 }
