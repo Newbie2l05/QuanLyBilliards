@@ -41,7 +41,7 @@ public sealed class SchemaSyncService : IHostedService
                 CREATE TABLE IF NOT EXISTS inventory_items (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     name VARCHAR(120) NOT NULL,
-                    unit VARCHAR(30) NOT NULL DEFAULT 'đơn vị',
+                    unit VARCHAR(30) NOT NULL DEFAULT 'don_vi',
                     current_stock DECIMAL(12,2) NOT NULL DEFAULT 0,
                     min_stock DECIMAL(12,2) NOT NULL DEFAULT 0,
                     active TINYINT(1) NOT NULL DEFAULT 1,
