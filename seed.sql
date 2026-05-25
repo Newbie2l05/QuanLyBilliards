@@ -1,11 +1,10 @@
 USE billiard_club;
 
 -- 1. Xóa dữ liệu tồn kho cũ để seed lại từ đầu (nếu có)
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE menu_item_inventory;
-TRUNCATE TABLE inventory_transactions;
-TRUNCATE TABLE inventory_items;
-SET FOREIGN_KEY_CHECKS = 1;
+DELETE FROM menu_item_inventory;
+DELETE FROM inventory_transactions;
+DELETE FROM inventory_items;
+ALTER TABLE inventory_items AUTO_INCREMENT = 1;
 
 -- 2. Thêm danh sách nguyên liệu (Inventory Items)
 INSERT INTO inventory_items (id, name, unit, current_stock, min_stock, active) VALUES
