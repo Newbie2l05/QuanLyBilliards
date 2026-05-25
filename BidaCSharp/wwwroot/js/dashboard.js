@@ -1,5 +1,11 @@
-﻿let revenueTrendChart;
+let revenueTrendChart;
 let statusBreakdownChart;
+
+const STATUS_LABELS = {
+    available: 'Trong',
+    playing: 'Dang choi',
+    reserved: 'Dat truoc'
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!requireAuth()) return;
@@ -32,16 +38,16 @@ function setText(id, value) {
 function buildSessionSummary(session) {
     if (!session) {
         return {
-            title: 'Chưa có phiên',
-            meta: 'Hệ thống sẽ cập nhật khi có bàn hoạt động'
+            title: 'Chua co phien',
+            meta: 'He thong se cap nhat khi co ban hoat dong'
         };
     }
 
     return {
-        title: session.table_name || `Bàn ${session.table_id}`,
+        title: session.table_name || `Ban ${session.table_id}`,
         meta: session.status === 'active'
-            ? `${formatDateTime(session.start_time)} • Đang chơi`
-            : `${formatDateTime(session.start_time)} • Đã hoàn tất`
+            ? `${formatDateTime(session.start_time)} • Dang choi`
+            : `${formatDateTime(session.start_time)} • Da hoan tat`
     };
 }
 
@@ -103,7 +109,7 @@ function renderStatusBreakdownChart(data = []) {
     statusBreakdownChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: data.map(item => item.label),
+            labels: data.map(item => STATUS_LABELS[item.label] || item.label),
             datasets: [{
                 data: data.map(item => Number(item.value || 0)),
                 backgroundColor: ['#38ef7d', '#ff7b6b', '#ffd200', '#667eea'],
@@ -149,13 +155,13 @@ async function loadDashboard() {
         setText('heroActiveSessions', playingTables);
         setText('heroTopItem', topItem ? topItem.item_name : '--');
         setText('insightUtilization', `${occupancyRate}%`);
-        setText('insightUtilizationMeta', `${playingTables}/${totalTables} bàn đang phục vụ`);
-        setText('insightTopItem', topItem ? topItem.item_name : 'Chưa có dữ liệu');
+        setText('insightUtilizationMeta', `${playingTables}/${totalTables} ban dang phuc vu`);
+        setText('insightTopItem', topItem ? topItem.item_name : 'Chua co du lieu');
         setText(
             'insightTopItemMeta',
             topItem
-                ? `${topItem.total_qty} đã bán • ${formatCurrency(topItem.total_revenue)}`
-                : 'Chưa phát sinh đơn hoàn tất'
+                ? `${topItem.total_qty} da ban • ${formatCurrency(topItem.total_revenue)}`
+                : 'Chua phat sinh don hoan tat'
         );
         setText('insightLatestSession', latestSummary.title);
         setText('insightLatestSessionMeta', latestSummary.meta);
@@ -170,13 +176,13 @@ async function loadDashboard() {
                     <div class="rank">${index + 1}</div>
                     <div class="item-info">
                         <div class="item-name">${item.item_name}</div>
-                        <div class="item-qty">${item.total_qty} đã bán</div>
+                        <div class="item-qty">${item.total_qty} da ban</div>
                     </div>
                     <div class="item-revenue">${formatCurrency(item.total_revenue)}</div>
                 </div>
             `).join('');
         } else {
-            topList.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px">Chưa có dữ liệu bán hàng</p>';
+            topList.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px">Chua co du lieu ban hang</p>';
         }
 
         if (!isAdmin()) {
@@ -196,18 +202,18 @@ async function loadDashboard() {
                                 <div class="item-name">${session.table_name}</div>
                                 <div class="item-qty">
                                     ${formatDateTime(session.start_time)}
-                                    ${session.end_time ? ` → ${formatTime(session.end_time)}` : ' • Đang chơi'}
+                                    ${session.end_time ? ` → ${formatTime(session.end_time)}` : ' • Dang choi'}
                                 </div>
                             </div>
                             <div style="font-size:13px;color:${session.status === 'active' ? 'var(--danger)' : 'var(--success)'}">
-                                ${session.status === 'active' ? 'Đang chơi' : formatCurrency(session.total_amount)}
+                                ${session.status === 'active' ? 'Dang choi' : formatCurrency(session.total_amount)}
                             </div>
                         </div>
                     `).join('')}
                 </div>
             `;
         } else {
-            sessionList.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px">Chưa có phiên chơi</p>';
+            sessionList.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px">Chua co phien choi</p>';
         }
     } catch (err) {
         console.error('Load dashboard error:', err);

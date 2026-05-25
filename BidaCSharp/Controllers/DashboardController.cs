@@ -45,35 +45,17 @@ public sealed class DashboardController : AppApiController
             ORDER BY s.created_at DESC
             LIMIT 10");
         var statusBreakdown = await connection.QueryAsync<label_value_record>(@"
-            SELECT
-                CASE status
-                    WHEN 'available' THEN 'Trống'
-                    WHEN 'playing' THEN 'Đang chơi'
-                    WHEN 'reserved' THEN 'Đặt trước'
-                    ELSE status
-                END AS label,
-                COUNT(*) AS value
+            SELECT status AS label, COUNT(*) AS value
             FROM `tables`
             WHERE active = 1
             GROUP BY status");
         var tableTypeBreakdown = await connection.QueryAsync<label_value_record>(@"
-            SELECT
-                CASE type
-                    WHEN 'vip' THEN 'Bàn VIP'
-                    ELSE 'Bàn thường'
-                END AS label,
-                COUNT(*) AS value
+            SELECT type AS label, COUNT(*) AS value
             FROM `tables`
             WHERE active = 1
             GROUP BY type");
         var paymentMethodBreakdown = await connection.QueryAsync<label_value_record>(@"
-            SELECT
-                CASE payment_method
-                    WHEN 'cash' THEN 'Tiền mặt'
-                    WHEN 'transfer' THEN 'Chuyển khoản'
-                    ELSE 'Thẻ'
-                END AS label,
-                COUNT(*) AS value
+            SELECT payment_method AS label, COUNT(*) AS value
             FROM payments
             WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
             GROUP BY payment_method");
