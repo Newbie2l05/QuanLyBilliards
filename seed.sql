@@ -11,6 +11,15 @@ ALTER TABLE menu_categories AUTO_INCREMENT = 1;
 ALTER TABLE menu_items AUTO_INCREMENT = 1;
 ALTER TABLE inventory_items AUTO_INCREMENT = 1;
 
+-- Default admin user
+INSERT INTO users (username, password, full_name, role, active)
+VALUES ('admin', '$2b$12$pCyLdv2hTdDijx9TaDDXz.vCGGVpinZauP7LAwAabAOGtve9KqDUi', 'Administrator', 'admin', 1)
+ON DUPLICATE KEY UPDATE
+    password = VALUES(password),
+    full_name = VALUES(full_name),
+    role = VALUES(role),
+    active = VALUES(active);
+
 -- Menu categories
 INSERT INTO menu_categories (id, name, icon, sort_order, active) VALUES
 (1, 'Nuoc dong chai', 'bi-cup-straw', 1, 1),
