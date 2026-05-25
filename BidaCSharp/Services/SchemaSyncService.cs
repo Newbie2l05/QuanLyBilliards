@@ -53,6 +53,22 @@ public sealed class SchemaSyncService : IHostedService
                 }
             }
 
+            async Task EnsureColumnUtf8mb4Async(string tableName, string columnName, string columnDefinition)
+            {
+                var columnCollation = await connection.ExecuteScalarAsync<string?>(
+                    """
+                    SELECT COLLATION_NAME
+                    FROM information_schema.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = @tableName AND COLUMN_NAME = @columnName
+                    """,
+                    new { tableName, columnName });
+
+                if (!string.Equals(columnCollation, "utf8mb4_unicode_ci", StringComparison.OrdinalIgnoreCase))
+                {
+                    await connection.ExecuteAsync($"ALTER TABLE `{tableName}` MODIFY {columnDefinition};");
+                }
+            }
+
             await connection.ExecuteAsync("""
                 CREATE TABLE IF NOT EXISTS inventory_items (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -176,6 +192,8 @@ public sealed class SchemaSyncService : IHostedService
                 """);
 
             await EnsureTableUtf8mb4Async("users");
+            await EnsureColumnUtf8mb4Async("users", "full_name", "`full_name` VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL");
+            await EnsureColumnUtf8mb4Async("users", "username", "`username` VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE");
 
             _logger.LogInformation("Supplemental schema sync completed.");
         }

@@ -588,9 +588,16 @@ async function importTablesCsv(event) {
             body: formData
         });
 
-        const data = await response.json().catch(() => ({}));
+        const rawText = await response.text();
+        let data = {};
+        try {
+            data = rawText ? JSON.parse(rawText) : {};
+        } catch {
+            data = {};
+        }
+
         if (!response.ok) {
-            throw new Error(data.error || data.message || 'Import CSV that bai');
+            throw new Error(data.error || data.message || rawText || 'Import CSV that bai');
         }
 
         showToast(data.message || 'Import ban thanh cong!');

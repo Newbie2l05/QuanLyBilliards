@@ -205,7 +205,8 @@ public sealed class TablesController : AppApiController
                     continue;
                 }
 
-                var values = line.Split(',');
+                var delimiter = line.Contains(';') ? ';' : ',';
+                var values = line.Split(delimiter);
                 if (values.Length < 3)
                 {
                     continue;
@@ -280,6 +281,12 @@ public sealed class TablesController : AppApiController
                 }
 
                 successCount++;
+            }
+
+            if (successCount == 0)
+            {
+                transaction.Rollback();
+                return ApiError("Khong co dong hop le de import. Hay dung file CSV mau va giu dung 4 cot: name,type,price_per_hour,position_order", 400);
             }
 
             transaction.Commit();
