@@ -442,7 +442,7 @@ async function initSidebar() {
                 </a>
                 <div class="nav-label">QUẢN LÝ</div>
                 <a href="/menu.html" class="nav-link" data-page="menu">
-                    <i class="bi bi-book"></i> Menu
+                    <i class="bi bi-box2-heart"></i> Sản phẩm & Kho
                 </a>
                 ${user.role === 'admin' ? `
                 <a href="/customers.html" class="nav-link" data-page="customers">
